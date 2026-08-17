@@ -10,13 +10,17 @@ import { EndlessLabView } from './components/EndlessLabView';
 import { ChallengeLabView } from './components/ChallengeLabView';
 import { LearnTutorial } from './components/LearnTutorial';
 import { MindProfileModal } from './components/MindProfileModal';
-import { Compass, Calendar, Infinity as InfinityIcon, Sliders, BookOpen, Brain } from 'lucide-react';
+import { AchievementsModal } from './components/AchievementsModal';
+import { LeaderboardModal } from './components/LeaderboardModal';
+import { Compass, Calendar, Infinity as InfinityIcon, Sliders, BookOpen, Brain, Trophy, Award } from 'lucide-react';
 import { Tile } from '../../ui';
 
 function MainApp() {
   const [progress, setProgress] = useState<PlayerProgress>(() => loadPlayerProgress());
   const [gameMode, setGameMode] = useState<GameMode>('journey');
   const [showMindProfile, setShowMindProfile] = useState<boolean>(false);
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
+  const [showAchievements, setShowAchievements] = useState<boolean>(false);
   const { t } = useI18n();
 
   // Sync audio enabled state with progress settings
@@ -126,12 +130,12 @@ function MainApp() {
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
 
       {/* Hero */}
-      <div className="shrink-0 flex flex-col items-center text-center pt-6 sm:pt-8 pb-1 max-w-2xl mx-auto w-full">
-        <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-violet-950/80 border border-violet-800/60 text-violet-400 text-[11px] font-bold mb-1 shadow-lg">
-          <Compass className="w-3 h-3" />
+      <div className="shrink-0 flex flex-col items-center text-center pt-8 pb-1 max-w-2xl mx-auto w-full">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-950/80 border border-violet-800/60 text-violet-400 text-xs font-semibold mb-2 shadow-lg">
+          <Compass className="w-3.5 h-3.5" />
           <span>{t('brand.tagline')}</span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-violet-200 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-violet-200 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
           {t('brand.hook')}
         </h1>
       </div>
@@ -198,6 +202,18 @@ function MainApp() {
             onClick={() => { sound.playClick(); setShowMindProfile(true); }}
             accentText="text-purple-400"
           />
+          <Tile
+            icon={<Trophy className="w-5 h-5" />}
+            label={t('header.leaderboard')}
+            onClick={() => { sound.playClick(); setShowLeaderboard(true); }}
+            accentText="text-amber-400"
+          />
+          <Tile
+            icon={<Award className="w-5 h-5" />}
+            label={t('header.achievements')}
+            onClick={() => { sound.playClick(); setShowAchievements(true); }}
+            accentText="text-violet-400"
+          />
         </div>
       </div>
 
@@ -207,6 +223,22 @@ function MainApp() {
           mindProfile={progress.mindProfile}
           totalScore={progress.totalScore}
           onClose={() => setShowMindProfile(false)}
+        />
+      )}
+
+      {/* Leaderboard Modal */}
+      {showLeaderboard && (
+        <LeaderboardModal
+          totalScore={progress.totalScore}
+          onClose={() => setShowLeaderboard(false)}
+        />
+      )}
+
+      {/* Achievements Modal */}
+      {showAchievements && (
+        <AchievementsModal
+          progress={progress}
+          onClose={() => setShowAchievements(false)}
         />
       )}
     </div>

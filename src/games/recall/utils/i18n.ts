@@ -2,6 +2,7 @@ import { Language } from '../types';
 
 export const TRANSLATIONS = {
   en: {
+    brandName: 'Choice Clash',
     appTitle: 'Which Would You Choose?',
     tagline: 'A fast, addictive casual learning game',
     playNow: 'PLAY NOW',
@@ -181,6 +182,7 @@ export const TRANSLATIONS = {
     keyActiveInMemory: 'Unlocked in Memory',
   },
   'zh-CN': {
+    brandName: '知识对决',
     appTitle: '你会选哪个？双选大比拼',
     tagline: '极速、上瘾的趣味事实大比拼',
     playNow: '立即开局',
@@ -360,6 +362,7 @@ export const TRANSLATIONS = {
     keyActiveInMemory: '已解密加载至内存',
   },
   'zh-TW': {
+    brandName: '知識對決',
     appTitle: '你會選哪個？雙選大比拼',
     tagline: '極速、上癮的趣味事實大比拼',
     playNow: '立即開局',

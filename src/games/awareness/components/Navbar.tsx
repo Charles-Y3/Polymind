@@ -1,4 +1,5 @@
 import React from 'react';
+import { Settings } from 'lucide-react';
 import { Language, PlayerProfile } from '../types';
 import { translations } from '../utils/i18n';
 import { calculateMasteryLevel } from '../utils/storage';
@@ -30,11 +31,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     >
       <div className="max-w-2xl mx-auto h-full px-4 flex items-center justify-between">
         {/* Brand Logo & Tagline */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-500 flex items-center justify-center text-slate-950 font-black shadow-md shadow-fuchsia-500/20 text-base select-none">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 shrink-0 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-500 flex items-center justify-center text-slate-950 font-black shadow-md shadow-fuchsia-500/20 text-base select-none">
             👁️
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-sm sm:text-base font-black tracking-tight text-slate-100 uppercase">
               {t.gameTitle}
             </h1>
@@ -50,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             id="nav-mastery-chip"
             onClick={onOpenMastery}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-fuchsia-500/40 text-xs font-mono transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-fuchsia-500/40 text-xs font-mono transition-all cursor-pointer shrink-0"
           >
             <span className="text-slate-300 font-bold">
               {mastery.rank.title[language]}
@@ -68,17 +69,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             {soundEnabled ? '🔊' : '🔇'}
           </button>
 
-          {/* Settings / Profile Button */}
+          {/* Settings Button */}
           <button
             id="nav-profile-settings-btn"
             onClick={onOpenSettings}
             aria-label="Open Settings"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-fuchsia-500/50 transition-all cursor-pointer"
+            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-slate-100 hover:border-fuchsia-500/50 transition-all cursor-pointer"
           >
-            <span className="text-sm select-none">{profile.avatar}</span>
-            <span className="text-xs font-mono font-bold text-slate-300 hidden sm:inline truncate max-w-[90px]">
-              {profile.username}
-            </span>
+            <Settings className="w-4 h-4" />
           </button>
         </div>
       </div>

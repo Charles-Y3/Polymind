@@ -27,13 +27,14 @@ type Key =
   | 'startZen'
   | 'customizer'
   | 'leaderboard'
-  | 'badges';
+  | 'badges'
+  | 'stageBadge';
 
 const TRANSLATIONS: Record<Language, Record<Key, string>> = {
   en: {
     gameTitle: 'GRAVITY TILT',
     heroHook: 'How Long Can You Stay Balanced?',
-    tagline: 'Tilt & Gyro Mobile Physics',
+    tagline: 'A Tilt-Controlled Balance Arcade',
     stars: 'Stars',
     toggleSound: 'Toggle Sound',
     tiltSettings: 'Tilt & Gyro Settings',
@@ -58,11 +59,12 @@ const TRANSLATIONS: Record<Language, Record<Key, string>> = {
     customizer: 'Customizer',
     leaderboard: 'Leaderboard',
     badges: 'Badges',
+    stageBadge: 'St.{stage}',
   },
   'zh-CN': {
     gameTitle: '重力倾斜',
     heroHook: '你能坚持平衡多久？',
-    tagline: '倾斜与陀螺仪物理',
+    tagline: '一款倾斜控制的平衡街机游戏',
     stars: '星星',
     toggleSound: '切换音效',
     tiltSettings: '倾斜与陀螺仪设置',
@@ -87,11 +89,12 @@ const TRANSLATIONS: Record<Language, Record<Key, string>> = {
     customizer: '自定义',
     leaderboard: '排行榜',
     badges: '徽章',
+    stageBadge: '第{stage}关',
   },
   'zh-TW': {
     gameTitle: '重力傾斜',
     heroHook: '你能堅持平衡多久？',
-    tagline: '傾斜與陀螺儀物理',
+    tagline: '一款傾斜控制的平衡街機遊戲',
     stars: '星星',
     toggleSound: '切換音效',
     tiltSettings: '傾斜與陀螺儀設定',
@@ -116,6 +119,7 @@ const TRANSLATIONS: Record<Language, Record<Key, string>> = {
     customizer: '自訂',
     leaderboard: '排行榜',
     badges: '徽章',
+    stageBadge: '第{stage}關',
   },
 };
 
@@ -170,5 +174,49 @@ const LEVEL_TEXT: Record<number, Record<Language, LevelText>> = {
 export function getLevelText(lang: Language | undefined, levelId: number): LevelText {
   const entry = LEVEL_TEXT[levelId];
   if (!entry) return {title: '', subtitle: '', description: ''};
+  return entry[lang ?? 'en'] ?? entry.en;
+}
+
+interface PowerUpText {
+  label: string;
+  description: string;
+}
+
+const POWERUP_TEXT: Record<string, Record<Language, PowerUpText>> = {
+  shield: {
+    en: {label: 'Shield', description: 'Kinetic aura shielding the ball from initial impacts'},
+    'zh-CN': {label: '护盾', description: '动能护盾，抵御初次撞击'},
+    'zh-TW': {label: '護盾', description: '動能護盾，抵禦初次撞擊'},
+  },
+  anchor: {
+    en: {label: 'Anchor', description: 'Heavy dense ball with increased momentum resistance'},
+    'zh-CN': {label: '锚定', description: '沉重致密的球体，具备更强的动量抗性'},
+    'zh-TW': {label: '錨定', description: '沉重緻密的球體，具備更強的動量抗性'},
+  },
+  magnet: {
+    en: {label: 'Magnet', description: 'Magnetic field pulling stars and items toward you'},
+    'zh-CN': {label: '磁力', description: '磁场吸引星星与道具靠近你'},
+    'zh-TW': {label: '磁力', description: '磁場吸引星星與道具靠近你'},
+  },
+  slow_mo: {
+    en: {label: 'Slow-Mo', description: 'Time-dilation matrix slowing incoming hazard speed'},
+    'zh-CN': {label: '慢动作', description: '时间膨胀力场，减缓来袭危险的速度'},
+    'zh-TW': {label: '慢動作', description: '時間膨脹力場，減緩來襲危險的速度'},
+  },
+  score_multiplier: {
+    en: {label: '2x Score', description: 'Overclocked telemetry doubling all point multipliers'},
+    'zh-CN': {label: '双倍分数', description: '超频遥测系统，使所有得分倍率翻倍'},
+    'zh-TW': {label: '雙倍分數', description: '超頻遙測系統，使所有得分倍率翻倍'},
+  },
+  safety_net: {
+    en: {label: 'Safety Net', description: 'Protective elastic perimeter net guarding drop-off edges'},
+    'zh-CN': {label: '安全网', description: '弹性防护网，守护平台边缘不坠落'},
+    'zh-TW': {label: '安全網', description: '彈性防護網，守護平台邊緣不墜落'},
+  },
+};
+
+export function getPowerUpText(lang: Language | undefined, type: string): PowerUpText {
+  const entry = POWERUP_TEXT[type];
+  if (!entry) return {label: type, description: ''};
   return entry[lang ?? 'en'] ?? entry.en;
 }

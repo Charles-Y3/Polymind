@@ -27,7 +27,7 @@ import {
 import { STARTER_POWERUPS, getUnlockedStarterPowerUps } from '../data/starterLoadouts';
 import { TopBar, StatChip, Tile, SegmentedTabs } from '../../../ui';
 import { getGame } from '../../../shell/games';
-import { t, getLevelText } from '../utils/i18n';
+import { t, getLevelText, getPowerUpText } from '../utils/i18n';
 
 const ACCENT = getGame('reflexes').accent;
 
@@ -87,9 +87,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         icon="⚡"
         accent={ACCENT}
         sticky={false}
-        leftSlot={<StatChip icon={<Star className="w-3.5 h-3.5 fill-current" />} value={totalStars} label={t(lang, 'stars')} accent={{...ACCENT, text: 'text-amber-300'}} />}
         rightSlot={
           <>
+            <StatChip icon={<Star className="w-3.5 h-3.5 fill-current" />} value={totalStars} label={t(lang, 'stars')} accent={{...ACCENT, text: 'text-amber-300'}} />
+
             <button
               onClick={onToggleSound}
               className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors shadow-lg backdrop-blur-md"
@@ -113,9 +114,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       <div className="max-w-2xl mx-auto w-full flex flex-col p-4 sm:p-6">
 
       {/* Hero Title Section */}
-      <div className="shrink-0 flex flex-col items-center text-center my-3 sm:my-4">
-        <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800/60 text-cyan-400 text-[11px] font-bold mb-1 shadow-lg">
-          <Smartphone className="w-3 h-3 animate-bounce" />
+      <div className="shrink-0 flex flex-col items-center text-center pt-2 mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-800/60 text-cyan-400 text-xs font-semibold mb-2 shadow-lg">
+          <Smartphone className="w-3.5 h-3.5 animate-bounce" />
           <span>{t(lang, 'tagline')}</span>
         </div>
 
@@ -196,6 +197,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 {STARTER_POWERUPS.map((item) => {
                   const isUnlocked = (stats.starsEarned?.[item.stageId] || 0) >= 3;
                   const isSelected = selectedStarterPowerUp === item.type;
+                  const powerUpText = getPowerUpText(lang, item.type);
 
                   return (
                     <button
@@ -209,15 +211,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                           ? 'bg-slate-900/80 border-slate-800 text-slate-200 hover:text-white hover:border-slate-700'
                           : 'bg-slate-950/60 border-slate-900 text-slate-500 cursor-not-allowed opacity-75'
                       }`}
-                      title={isUnlocked ? item.description : t(lang, 'unlockHint', {stage: String(item.stageId), label: item.label})}
+                      title={isUnlocked ? powerUpText.description : t(lang, 'unlockHint', {stage: String(item.stageId), label: powerUpText.label})}
                     >
                       <div className="flex items-center gap-1 truncate">
                         {getPowerUpIcon(item.type)}
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{powerUpText.label}</span>
                       </div>
                       {!isUnlocked && (
                         <span className="text-[9px] font-extrabold text-amber-500/90 bg-amber-950/60 px-1 py-0.5 rounded border border-amber-800/40 flex items-center gap-0.5 shrink-0">
-                          <Lock className="w-2.5 h-2.5" /> 3★ St.{item.stageId}
+                          <Lock className="w-2.5 h-2.5" /> 3★ {t(lang, 'stageBadge', {stage: String(item.stageId)})}
                         </span>
                       )}
                     </button>

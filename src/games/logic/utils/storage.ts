@@ -1,5 +1,42 @@
 import { PlayerProgress, MindProfile, WorldId } from '../types';
 
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  icon: string;
+  score: number;
+  isPlayer?: boolean;
+  rank: number;
+}
+
+const BOT_NAMES = [
+  'Cipher', 'Vector', 'Axiom', 'Recursion', 'Quanta', 'Paradox',
+  'Lambda', 'Entropy', 'Fractal', 'Neuron', 'Codex', 'Nexus',
+];
+const BOT_SCORES = [3200, 2850, 2600, 2340, 2100, 1880, 1650, 1420, 1200, 980, 760, 540];
+
+export function generateLeaderboard(playerName: string, playerScore: number): LeaderboardEntry[] {
+  const entries: LeaderboardEntry[] = BOT_NAMES.map((name, i) => ({
+    id: `bot-${i}`,
+    name,
+    icon: '🤖',
+    score: BOT_SCORES[i] ?? 500,
+    rank: i + 1,
+  }));
+
+  entries.push({
+    id: 'player',
+    name: playerName,
+    icon: '🧠',
+    score: playerScore,
+    isPlayer: true,
+    rank: 1,
+  });
+
+  entries.sort((a, b) => b.score - a.score);
+  return entries.map((entry, idx) => ({ ...entry, rank: idx + 1 }));
+}
+
 const STORAGE_KEY = 'machine_mind_player_progress_v1';
 
 export const initialMindProfile: MindProfile = {

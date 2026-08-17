@@ -37,24 +37,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     <div className="flex-1 min-h-0 overflow-y-auto">
     <div className="w-full flex flex-col items-center p-4 sm:p-6 max-w-2xl mx-auto">
       {/* Top Title & Philosophy Banner */}
-      <div className="w-full text-center my-4 sm:my-6 animate-fadeIn">
+      <div className="w-full text-center pt-2 mb-3 animate-fadeIn">
         {/* Category pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-fuchsia-950/80 border border-fuchsia-800/60 text-fuchsia-400 text-[11px] font-bold mb-3 shadow-lg">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-fuchsia-950/80 border border-fuchsia-800/60 text-fuchsia-400 text-xs font-semibold mb-2 shadow-lg">
           <span>👁️</span>
-          <span>{t.heroPill}</span>
+          <span>{t.philosophy}</span>
         </div>
 
-        {/* Eye visual focal emblem */}
-        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-fuchsia-500/20 via-slate-900 to-pink-500/20 border border-fuchsia-500/40 shadow-xl shadow-fuchsia-500/10 mb-3 text-3xl sm:text-4xl select-none">
-          👁️
-        </div>
-
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-100 tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-100 tracking-tight">
           {t.gameSubtitle}
         </h1>
-        <p className="text-xs text-slate-400 italic mt-1 font-serif">
-          &ldquo;{t.philosophy}&rdquo;
-        </p>
       </div>
 
       {/* Main Mode Cards Grid */}

@@ -37,18 +37,23 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-30 h-[60px] bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-6">
       <div className="max-w-2xl mx-auto h-full flex items-center justify-between gap-2">
-        {/* Left: App Logo & Level Progress */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onGoHome}
-            className="flex items-center gap-2 text-left group transition-transform active:scale-95"
-            title="Home"
-          >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-lg sm:text-xl font-extrabold shadow-lg shadow-orange-500/20 text-slate-950 group-hover:scale-105 transition-transform">
-              {levelInfo.emoji}
-            </div>
-          </button>
+        {/* Left: App Logo */}
+        <button
+          onClick={onGoHome}
+          className="flex items-center gap-2 text-left group transition-transform active:scale-95 shrink-0 min-w-0"
+          title="Home"
+        >
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-lg sm:text-xl font-extrabold shadow-lg shadow-orange-500/20 text-slate-950 shrink-0 group-hover:scale-105 transition-transform">
+            📚
+          </div>
+          <span className="text-sm font-black tracking-tight text-slate-100 truncate">
+            {t(language, 'brandName')}
+          </span>
+        </button>
 
+        {/* Right: Level/XP, Streak Badge, 3-Way BGM Toggle, and Settings ⚙️ */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Level & XP */}
           <button
             onClick={() => {
               soundManager.playTap();
@@ -78,10 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
           </button>
-        </div>
 
-        {/* Right: Streak Badge, 3-Way BGM Toggle, and Settings ⚙️ */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Current Streak Badge */}
           <button
             onClick={() => {

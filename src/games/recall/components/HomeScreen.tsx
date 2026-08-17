@@ -53,14 +53,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <div className="text-center space-y-2 pt-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>{t(language, 'heroSub')}</span>
+          <span>{t(language, 'tagline')}</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white font-display">
           {t(language, 'appTitle')}
         </h1>
-        <p className="text-sm sm:text-base text-slate-400 max-w-md mx-auto">
-          {t(language, 'tagline')}
-        </p>
       </div>
 
       {/* Target Audience / Difficulty Mode Switcher */}

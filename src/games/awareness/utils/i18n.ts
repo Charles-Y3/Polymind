@@ -225,7 +225,7 @@ export const translations = {
   en: {
     gameTitle: 'Spot Rush',
     heroPill: 'Visual Perception Training',
-    gameSubtitle: 'See More Than Meets the Eye',
+    gameSubtitle: 'More Than Meets the Eye',
     philosophy: 'Don’t just look. Notice.',
     humanAbilitiesCollection: 'Polymind · Awareness',
     collectionDescription: 'Reflexes (Gravity Tilt) · Recall (Choice Clash) · Logic (Logic Lock) · Awareness (Spot Rush)',

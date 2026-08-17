@@ -14,9 +14,35 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'header.streak': 'd',
     'header.points': 'pts',
     'header.mindProfile': 'Mind Profile',
+    'header.leaderboard': 'Leaderboard',
+    'header.achievements': 'Badges',
     'header.muteSound': 'Mute Sound',
     'header.enableSound': 'Enable Sound',
     'header.language': 'Language',
+
+    // Leaderboard
+    'leaderboard.title': 'Leaderboard',
+    'leaderboard.subtitle': 'Ranked by total score, all time',
+    'leaderboard.you': 'You',
+    'leaderboard.close': 'Close',
+
+    // Achievements
+    'achievements.title': 'Badges',
+    'achievements.unlocked': '{count} / {total} Unlocked',
+    'achievements.done': 'Done',
+    'achievements.close': 'Close',
+    'achievements.firstSteps.title': 'First Steps',
+    'achievements.firstSteps.desc': 'Solve your first puzzle',
+    'achievements.patternSeeker.title': 'Pattern Seeker',
+    'achievements.patternSeeker.desc': 'Solve 10 puzzles total',
+    'achievements.worldExplorer.title': 'World Explorer',
+    'achievements.worldExplorer.desc': 'Unlock 4 cognitive worlds',
+    'achievements.grandMachinist.title': 'Grand Machinist',
+    'achievements.grandMachinist.desc': 'Unlock all 8 cognitive worlds',
+    'achievements.dailyDevotion.title': 'Daily Devotion',
+    'achievements.dailyDevotion.desc': 'Reach a 7-day daily streak',
+    'achievements.endlessMind.title': 'Endless Mind',
+    'achievements.endlessMind.desc': 'Score 500+ in Endless Lab',
 
     // Journey View
     'journey.badge': 'LOGIC DISCOVERY JOURNEY',
@@ -201,9 +227,35 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'header.streak': '天',
     'header.points': '分',
     'header.mindProfile': '心智画像',
+    'header.leaderboard': '排行榜',
+    'header.achievements': '徽章',
     'header.muteSound': '静音',
     'header.enableSound': '开启音效',
     'header.language': '语言',
+
+    // Leaderboard
+    'leaderboard.title': '排行榜',
+    'leaderboard.subtitle': '按总分排名，历史累计',
+    'leaderboard.you': '你',
+    'leaderboard.close': '关闭',
+
+    // Achievements
+    'achievements.title': '徽章',
+    'achievements.unlocked': '已解锁 {count} / {total}',
+    'achievements.done': '已完成',
+    'achievements.close': '关闭',
+    'achievements.firstSteps.title': '初次尝试',
+    'achievements.firstSteps.desc': '解开你的第一道谜题',
+    'achievements.patternSeeker.title': '规律探寻者',
+    'achievements.patternSeeker.desc': '累计解开 10 道谜题',
+    'achievements.worldExplorer.title': '世界探索者',
+    'achievements.worldExplorer.desc': '解锁 4 个认知世界',
+    'achievements.grandMachinist.title': '大机械师',
+    'achievements.grandMachinist.desc': '解锁全部 8 个认知世界',
+    'achievements.dailyDevotion.title': '每日坚持',
+    'achievements.dailyDevotion.desc': '达成连续 7 天每日挑战',
+    'achievements.endlessMind.title': '无尽之心',
+    'achievements.endlessMind.desc': '在无尽实验室获得 500 分以上',
 
     // Journey View
     'journey.badge': '逻辑探索之旅',
@@ -388,9 +440,35 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'header.streak': '天',
     'header.points': '分',
     'header.mindProfile': '心智畫像',
+    'header.leaderboard': '排行榜',
+    'header.achievements': '徽章',
     'header.muteSound': '靜音',
     'header.enableSound': '開啟音效',
     'header.language': '語言',
+
+    // Leaderboard
+    'leaderboard.title': '排行榜',
+    'leaderboard.subtitle': '按總分排名，歷史累計',
+    'leaderboard.you': '你',
+    'leaderboard.close': '關閉',
+
+    // Achievements
+    'achievements.title': '徽章',
+    'achievements.unlocked': '已解鎖 {count} / {total}',
+    'achievements.done': '已完成',
+    'achievements.close': '關閉',
+    'achievements.firstSteps.title': '初次嘗試',
+    'achievements.firstSteps.desc': '解開你的第一道謎題',
+    'achievements.patternSeeker.title': '規律探尋者',
+    'achievements.patternSeeker.desc': '累計解開 10 道謎題',
+    'achievements.worldExplorer.title': '世界探索者',
+    'achievements.worldExplorer.desc': '解鎖 4 個認知世界',
+    'achievements.grandMachinist.title': '大機械師',
+    'achievements.grandMachinist.desc': '解鎖全部 8 個認知世界',
+    'achievements.dailyDevotion.title': '每日堅持',
+    'achievements.dailyDevotion.desc': '達成連續 7 天每日挑戰',
+    'achievements.endlessMind.title': '無盡之心',
+    'achievements.endlessMind.desc': '在無盡實驗室獲得 500 分以上',
 
     // Journey View
     'journey.badge': '邏輯探索之旅',
