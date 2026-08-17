@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@reflexes/*": ["./src/games/reflexes/*"],
+      "@recall/*": ["./src/games/recall/*"],
+      "@logic/*": ["./src/games/logic/*"],
+      "@awareness/*": ["./src/games/awareness/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
+}
