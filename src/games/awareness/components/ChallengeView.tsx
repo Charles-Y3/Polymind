@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
+import confetti from 'canvas-confetti';
 import { Challenge, ChallengeResult, GameMode, Language } from '../types';
 import { soundManager } from '../utils/audio';
 import { skillLabels, translations } from '../utils/i18n';
@@ -104,6 +106,23 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
 
       earnedScore = Math.round((basePoints * diffMultiplier + speedBonus) * multiplier);
       soundManager.playCorrect(nextStreak);
+
+      // Small celebratory burst + haptic every 3rd streak hit, so momentum feels
+      // rewarded mid-session, not just at the final summary screen. Best-effort only —
+      // an exception here (e.g. a browser refusing Vibration API outside a trusted
+      // gesture) must never block the score/result state updates below it.
+      if (nextStreak > 0 && nextStreak % 3 === 0) {
+        try {
+          confetti({ particleCount: 40, spread: 50, origin: { y: 0.35 }, scalar: 0.7 });
+        } catch {
+          // ignore
+        }
+        try {
+          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(40);
+        } catch {
+          // ignore
+        }
+      }
     } else {
       soundManager.playWrong();
       nextStreak = 0;
@@ -137,6 +156,8 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
 
   const handleUserSelect = (isCorrect: boolean, itemId: string) => {
     if (isAnswered) return;
+    // Shift already plays its own distinct panel-tap sound; avoid layering both.
+    if (currentChallenge.mode !== 'shift') soundManager.playTap();
     const timeSpent = (Date.now() - startTimeRef.current) / 1000;
     processAnswerResult(isCorrect, timeSpent, itemId);
   };
@@ -196,9 +217,15 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
                 <span>STREAK ×{currentStreak}</span>
               </div>
             )}
-            <div className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 font-mono font-black text-sm text-cyan-300">
+            <motion.div
+              key={totalScore}
+              initial={{ scale: 1.15 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 font-mono font-black text-sm text-cyan-300"
+            >
               {totalScore.toLocaleString()}
-            </div>
+            </motion.div>
           </div>
         </div>
 
@@ -222,14 +249,28 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
           </p>
         </div>
 
-        {/* Dynamic Stage Renderers */}
-        <div className="w-full flex items-center justify-center">
+        {/* Dynamic Stage Renderers.
+            Deliberately NOT wrapped in AnimatePresence: mode="wait" defers mounting the
+            next round's stage until the previous one's exit animation finishes, and in
+            testing this let the isAnswered=false reset (which fires the same tick the
+            round advances) get applied to the OLD, about-to-unmount instance instead of
+            the new one — the next round would render permanently disabled with no way to
+            answer or reach the result modal. A plain keyed remount still gets a fade-in
+            without that hazard. */}
+        <motion.div
+          key={currentChallenge.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="w-full flex items-center justify-center"
+        >
           {currentChallenge.mode === 'notice' && (
             <NoticeStage
               challenge={currentChallenge}
               disabled={isAnswered}
               selectedItemId={selectedId}
               highContrast={highContrast}
+              language={language}
               onSelect={(item) => handleUserSelect(item.isOdd, item.id)}
             />
           )}
@@ -273,7 +314,7 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
               onSelectAnomaly={(itemId, isAnomaly) => handleUserSelect(isAnomaly, itemId)}
             />
           )}
-        </div>
+        </motion.div>
       </main>
 
       {/* Footer Info */}

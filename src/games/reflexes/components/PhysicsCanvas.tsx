@@ -98,6 +98,11 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
 
   const skin = BALL_SKINS.find((s) => s.id === skinId) || BALL_SKINS[0];
 
+  // Latest control values, read inside the animation loop via ref so the loop
+  // itself never has to restart on every tilt sample (deviceorientation fires ~60Hz)
+  const controlRef = useRef({ tiltX, tiltY, sensitivity, invertX, invertY });
+  controlRef.current = { tiltX, tiltY, sensitivity, invertX, invertY };
+
   // Get current platform bounds based on actual canvas / phone screen dimensions
   const getPlatformBounds = () => {
     const canvas = canvasRef.current;
@@ -212,7 +217,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, [isPaused, tiltX, tiltY, sensitivity, invertX, invertY, level, skin]);
+  }, [isPaused, level, skin]);
 
   // Helper: Add particle explosion
   const addExplosion = (x: number, y: number, color: string, count: number = 16) => {
@@ -550,12 +555,13 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     }
 
     // 4. Ball Physics Calculation based on Tilt
-    const effectiveSensitivity = sensitivity * 0.8;
-    const effX = invertX ? -tiltX : tiltX;
-    const effY = invertY ? -tiltY : tiltY;
+    const control = controlRef.current;
+    const effectiveSensitivity = control.sensitivity * 0.95;
+    const effX = control.invertX ? -control.tiltX : control.tiltX;
+    const effY = control.invertY ? -control.tiltY : control.tiltY;
 
     // Tilt gravity acceleration
-    const gravityForce = 450;
+    const gravityForce = 520;
     const accelX = effX * effectiveSensitivity * gravityForce;
     const accelY = effY * effectiveSensitivity * gravityForce;
 
@@ -565,9 +571,10 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     ball.vy += accelY * invMass * dt;
 
     // Friction & Air Resistance (Stabilizer Boost)
+    // Tuned to reverse direction quickly on tilt reversal (matches the calibration test pad's feel)
     const stabilityBoost = passiveBoosts?.tiltControlMult || 1.0;
-    const baseFriction = ball.isAnchored ? 0.94 : 0.985;
-    const friction = Math.max(0.90, baseFriction - (stabilityBoost - 1.0) * 0.04);
+    const baseFriction = ball.isAnchored ? 0.94 : 0.945;
+    const friction = Math.max(0.88, baseFriction - (stabilityBoost - 1.0) * 0.04);
     ball.vx *= Math.pow(friction, dt * 60);
     ball.vy *= Math.pow(friction, dt * 60);
 
@@ -970,9 +977,10 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     ctx.translate(cssW / 2 + shakeX, cssH / 2 + shakeY);
 
     // Apply smooth 3D tilt transformation to the platform context!
-    const effectiveSens = sensitivity * 0.4;
-    const effX = invertX ? -tiltX : tiltX;
-    const effY = invertY ? -tiltY : tiltY;
+    const renderControl = controlRef.current;
+    const effectiveSens = renderControl.sensitivity * 0.4;
+    const effX = renderControl.invertX ? -renderControl.tiltX : renderControl.tiltX;
+    const effY = renderControl.invertY ? -renderControl.tiltY : renderControl.tiltY;
 
     const tiltAngleX = effY * effectiveSens * 0.22; // pitch
     const tiltAngleY = effX * effectiveSens * 0.22; // roll

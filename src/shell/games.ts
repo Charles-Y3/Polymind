@@ -43,7 +43,7 @@ export const GAMES: GameManifestEntry[] = [
     tagline: 'Deduction, pattern recognition, analysis',
     path: '/logic',
     accent: {from: 'from-violet-500', to: 'to-purple-600', text: 'text-violet-300', ring: 'ring-violet-500/40'},
-    emoji: '🧠',
+    emoji: '🔐',
     Component: lazy(() => import('../games/logic/App')),
   },
   {

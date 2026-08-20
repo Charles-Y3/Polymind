@@ -418,24 +418,24 @@ async function startServer() {
 
       if (!client) {
         const defaultExplanations: Record<string, string> = {
-          en: 'The machine takes the input value, applies the transformation step-by-step to reach the output. Observe how the change remains consistent across all given examples!',
-          'zh-CN': '机器接收输入值，按步骤应用转换法则输出结果。请观察所有已知范例中输入到输出的规律！',
-          'zh-TW': '機器接收輸入值，按步驟套用轉換法則輸出結果。請觀察所有已知範例中輸入到輸出的規律！',
+          en: 'The lock follows a consistent rule from input to output. Study how each example transforms, step by step — the same logic unlocks the rest.',
+          'zh-CN': '这把锁的规则从输入到输出始终一致。仔细研究每个范例的转换过程——同样的逻辑能帮你破解剩下的部分。',
+          'zh-TW': '這把鎖的規則從輸入到輸出始終一致。仔細研究每個範例的轉換過程——同樣的邏輯能幫你破解剩下的部分。',
         };
         return res.json({success: true, explanation: defaultExplanations[language] || defaultExplanations.en});
       }
 
-      const prompt = `You are "Professor Machine", a friendly futuristic AI logic tutor in the game "Logic Lock" (part of Polymind).
-Explain the logic rule for this machine puzzle clearly and concisely (2-3 sentences max).
+      const prompt = `You are "The Architect", a former vault engineer turned mentor in the heist game "Logic Lock" (part of Polymind).
+Explain the logic rule for this lock clearly and concisely (2-3 sentences max).
 ${langInstruction}
 
-Puzzle Info:
-World: ${puzzle?.worldTitle || 'Machine'}
+Lock Info:
+Type: ${puzzle?.worldTitle || 'Lock'}
 Examples: ${JSON.stringify(puzzle?.examples || [])}
 Rule / Formula: ${puzzle?.expectedRuleDescription || 'Hidden Rule'}
-User Answer/Rule Attempt: ${JSON.stringify(userSubmittedAnswer || 'Correct')}
+Player Answer/Attempt: ${JSON.stringify(userSubmittedAnswer || 'Correct')}
 
-Provide an encouraging, clear "Aha!" breakdown explaining WHY the rule works. Speak playfully like a clever laboratory AI mentor.`;
+Provide an encouraging, clear "Aha!" breakdown explaining WHY the rule works. Speak like a sharp, dryly witty ex-safecracker mentoring the player.`;
 
       const response = await client.models.generateContent({
         model: AI_MODEL,
@@ -473,14 +473,14 @@ Provide an encouraging, clear "Aha!" breakdown explaining WHY the rule works. Sp
 
       if (!client) {
         const defaultMistakes: Record<string, string> = {
-          en: "That attempt didn't match all examples. Compare how your rule behaves on the first example vs the second!",
-          'zh-CN': '该答案未能契合所有范例。请对比该规则在第一个范例与第二个范例中的表现！',
-          'zh-TW': '該答案未能契合所有範例。請對比該規則在第一個範例與第二個範例中的表現！',
+          en: "That combination didn't fit. Compare how the rule behaves on the first example versus the second — the mismatch is there.",
+          'zh-CN': '这个组合不吻合。请对比该规则在第一个范例与第二个范例中的表现——差异就在其中。',
+          'zh-TW': '這個組合不吻合。請對比該規則在第一個範例與第二個範例中的表現——差異就在其中。',
         };
         return res.json({success: true, feedback: defaultMistakes[language] || defaultMistakes.en});
       }
 
-      const prompt = `The player made an incorrect guess in Logic Lock.
+      const prompt = `The player made an incorrect guess while cracking a lock in Logic Lock.
 ${langInstruction}
 Puzzle Examples: ${JSON.stringify(puzzle?.examples)}
 Expected Rule: ${puzzle?.expectedRuleDescription}

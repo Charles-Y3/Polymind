@@ -1,5 +1,6 @@
 import React from 'react';
-import { NoticeChallenge } from '../../types';
+import { Language, NoticeChallenge } from '../../types';
+import { StageHeaderBar } from './StageHeaderBar';
 
 interface NoticeStageProps {
   challenge: NoticeChallenge;
@@ -7,6 +8,7 @@ interface NoticeStageProps {
   disabled: boolean;
   selectedItemId?: string | null;
   highContrast: boolean;
+  language: Language;
 }
 
 export const NoticeStage: React.FC<NoticeStageProps> = ({
@@ -15,11 +17,22 @@ export const NoticeStage: React.FC<NoticeStageProps> = ({
   disabled,
   selectedItemId,
   highContrast,
+  language,
 }) => {
   const { gridSize, items } = challenge;
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center p-2">
+    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center gap-3 p-2">
+      <StageHeaderBar
+        borderClass="border-cyan-500/30"
+        textClass="text-cyan-400"
+        label={language === 'en' ? 'Odd One Out' : language === 'zh-CN' ? '寻找异类' : '尋找異類'}
+        right={
+          <span className="text-[10px] text-slate-500 font-mono">
+            {gridSize}×{gridSize}
+          </span>
+        }
+      />
       <div
         id="notice-grid"
         className="grid gap-3 sm:gap-4 p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-xl backdrop-blur-sm"

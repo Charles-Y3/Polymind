@@ -1057,15 +1057,273 @@ const shiftPresets: ShiftPreset[] = [
       },
     ],
   },
+  {
+    sceneType: 'kitchen',
+    sceneName: { en: 'Bakery Counter', 'zh-CN': '面包店柜台', 'zh-TW': '麵包店櫃台' },
+    baseItems: [
+      { id: 'bread', name: 'Bread Loaf', icon: '🍞', x: 25, y: 45 },
+      { id: 'croissant', name: 'Croissant', icon: '🥐', x: 48, y: 38 },
+      { id: 'cake', name: 'Layer Cake', icon: '🍰', x: 70, y: 42 },
+      { id: 'scale', name: 'Kitchen Scale', icon: '⚖️', x: 55, y: 68 },
+      { id: 'basket', name: 'Bread Basket', icon: '🧺', x: 20, y: 72 },
+      { id: 'sign', name: 'Open Sign', icon: '🪧', x: 82, y: 22 },
+    ],
+    changes: [
+      {
+        type: 'rotation',
+        targetId: 'sign',
+        apply: (items) => items.map((it) => (it.id === 'sign' ? { ...it, rotation: 25 } : it)),
+        description: {
+          en: 'The open sign tilted at an angle.',
+          'zh-CN': '营业牌歪斜倾斜了。',
+          'zh-TW': '營業牌歪斜傾斜了。',
+        },
+      },
+      {
+        type: 'movement',
+        targetId: 'croissant',
+        apply: (items) => items.map((it) => (it.id === 'croissant' ? { ...it, x: 33, y: 40 } : it)),
+        description: {
+          en: 'The croissant moved closer to the bread loaf.',
+          'zh-CN': '牛角包移动到了更靠近面包的位置。',
+          'zh-TW': '牛角包移動到了更靠近麵包的位置。',
+        },
+      },
+      {
+        type: 'size',
+        targetId: 'cake',
+        apply: (items) => items.map((it) => (it.id === 'cake' ? { ...it, scale: 1.5 } : it)),
+        description: {
+          en: 'The layer cake grew noticeably taller.',
+          'zh-CN': '层叠蛋糕明显长高变大了。',
+          'zh-TW': '層疊蛋糕明顯長高變大了。',
+        },
+      },
+      {
+        type: 'removal',
+        targetId: 'basket',
+        apply: (items) => items.filter((it) => it.id !== 'basket'),
+        description: {
+          en: 'The bread basket disappeared from the counter.',
+          'zh-CN': '柜台上的面包篮消失了。',
+          'zh-TW': '櫃台上的麵包籃消失了。',
+        },
+      },
+    ],
+  },
+  {
+    sceneType: 'office',
+    sceneName: { en: 'Design Studio', 'zh-CN': '设计工作室', 'zh-TW': '設計工作室' },
+    baseItems: [
+      { id: 'tablet', name: 'Drawing Tablet', icon: '🖊️', x: 30, y: 45 },
+      { id: 'monitor2', name: 'Widescreen Monitor', icon: '🖥️', x: 55, y: 35 },
+      { id: 'swatch', name: 'Color Swatches', icon: '🎨', x: 75, y: 55 },
+      { id: 'coffee2', name: 'Latte Cup', icon: '☕', x: 20, y: 70 },
+      { id: 'clip', name: 'Paper Clip Jar', icon: '📎', x: 60, y: 70 },
+      { id: 'lightbulb', name: 'Idea Lamp', icon: '💡', x: 82, y: 25 },
+    ],
+    changes: [
+      {
+        type: 'state',
+        targetId: 'lightbulb',
+        apply: (items) => items.map((it) => (it.id === 'lightbulb' ? { ...it, icon: '🌑' } : it)),
+        description: {
+          en: 'The idea lamp turned off.',
+          'zh-CN': '灵感灯熄灭了。',
+          'zh-TW': '靈感燈熄滅了。',
+        },
+      },
+      {
+        type: 'rotation',
+        targetId: 'monitor2',
+        apply: (items) => items.map((it) => (it.id === 'monitor2' ? { ...it, rotation: 12 } : it)),
+        description: {
+          en: 'The monitor tilted slightly to one side.',
+          'zh-CN': '显示器微微向一侧倾斜了。',
+          'zh-TW': '顯示器微微向一側傾斜了。',
+        },
+      },
+      {
+        type: 'movement',
+        targetId: 'coffee2',
+        apply: (items) => items.map((it) => (it.id === 'coffee2' ? { ...it, x: 40, y: 72 } : it)),
+        description: {
+          en: 'The latte cup slid across the desk.',
+          'zh-CN': '拿铁杯在桌面上滑动移位了。',
+          'zh-TW': '拿鐵杯在桌面上滑動移位了。',
+        },
+      },
+      {
+        type: 'addition',
+        targetId: 'sticky',
+        apply: (items) => [...items, { id: 'sticky', name: 'Sticky Note', icon: '🗒️', x: 65, y: 40 }],
+        description: {
+          en: 'A sticky note appeared on the monitor.',
+          'zh-CN': '显示器上多贴了一张便利贴。',
+          'zh-TW': '顯示器上多貼了一張便利貼。',
+        },
+      },
+    ],
+  },
+  {
+    sceneType: 'nature',
+    sceneName: { en: 'Mountain Trail', 'zh-CN': '山间小径', 'zh-TW': '山間小徑' },
+    baseItems: [
+      { id: 'peak', name: 'Mountain Peak', icon: '⛰️', x: 55, y: 20 },
+      { id: 'tent', name: 'Camp Tent', icon: '⛺', x: 25, y: 58 },
+      { id: 'campfire2', name: 'Campfire', icon: '🔥', x: 45, y: 65 },
+      { id: 'backpack', name: 'Hiking Backpack', icon: '🎒', x: 68, y: 55 },
+      { id: 'moon', name: 'Rising Moon', icon: '🌕', x: 82, y: 18 },
+      { id: 'pine', name: 'Pine Tree', icon: '🌲', x: 15, y: 35 },
+    ],
+    changes: [
+      {
+        type: 'size',
+        targetId: 'campfire2',
+        apply: (items) => items.map((it) => (it.id === 'campfire2' ? { ...it, scale: 1.5 } : it)),
+        description: {
+          en: 'The campfire flared up much larger.',
+          'zh-CN': '篝火明显蹿高变大了。',
+          'zh-TW': '篝火明顯竄高變大了。',
+        },
+      },
+      {
+        type: 'movement',
+        targetId: 'backpack',
+        apply: (items) => items.map((it) => (it.id === 'backpack' ? { ...it, x: 68, y: 40 } : it)),
+        description: {
+          en: 'The backpack was propped up higher against a rock.',
+          'zh-CN': '背包被挪到了更高的岩石旁靠放。',
+          'zh-TW': '背包被挪到了更高的岩石旁靠放。',
+        },
+      },
+      {
+        type: 'state',
+        targetId: 'moon',
+        apply: (items) => items.map((it) => (it.id === 'moon' ? { ...it, icon: '🌘' } : it)),
+        description: {
+          en: 'The moon waned to a crescent.',
+          'zh-CN': '月亮变成了一弯残月。',
+          'zh-TW': '月亮變成了一彎殘月。',
+        },
+      },
+      {
+        type: 'removal',
+        targetId: 'pine',
+        apply: (items) => items.filter((it) => it.id !== 'pine'),
+        description: {
+          en: 'The pine tree on the ridge disappeared.',
+          'zh-CN': '山脊上的松树不见了。',
+          'zh-TW': '山脊上的松樹不見了。',
+        },
+      },
+    ],
+  },
+  {
+    sceneType: 'city',
+    sceneName: { en: 'Night Market', 'zh-CN': '夜市街景', 'zh-TW': '夜市街景' },
+    baseItems: [
+      { id: 'stall', name: 'Food Stall', icon: '🏮', x: 25, y: 40 },
+      { id: 'noodles', name: 'Noodle Bowl', icon: '🍜', x: 48, y: 55 },
+      { id: 'skewer', name: 'Grilled Skewer', icon: '🍢', x: 68, y: 45 },
+      { id: 'lantern2', name: 'Hanging Lantern', icon: '🏮', x: 78, y: 20 },
+      { id: 'bike', name: 'Parked Bicycle', icon: '🚲', x: 18, y: 72 },
+      { id: 'moon2', name: 'Night Moon', icon: '🌙', x: 50, y: 15 },
+    ],
+    changes: [
+      {
+        type: 'rotation',
+        targetId: 'bike',
+        apply: (items) => items.map((it) => (it.id === 'bike' ? { ...it, rotation: 20 } : it)),
+        description: {
+          en: 'The parked bicycle leaned over further.',
+          'zh-CN': '停放的自行车倾斜得更厉害了。',
+          'zh-TW': '停放的自行車傾斜得更厲害了。',
+        },
+      },
+      {
+        type: 'movement',
+        targetId: 'skewer',
+        apply: (items) => items.map((it) => (it.id === 'skewer' ? { ...it, x: 55, y: 45 } : it)),
+        description: {
+          en: 'The grilled skewer plate moved toward the noodle bowl.',
+          'zh-CN': '烤串盘子移到了靠近面碗的位置。',
+          'zh-TW': '烤串盤子移到了靠近麵碗的位置。',
+        },
+      },
+      {
+        type: 'addition',
+        targetId: 'smoke2',
+        apply: (items) => [...items, { id: 'smoke2', name: 'Grill Smoke', icon: '💨', x: 70, y: 32 }],
+        description: {
+          en: 'Smoke started rising from the grill.',
+          'zh-CN': '烤炉上方开始升起阵阵烟雾。',
+          'zh-TW': '烤爐上方開始升起陣陣煙霧。',
+        },
+      },
+      {
+        type: 'removal',
+        targetId: 'lantern2',
+        apply: (items) => items.filter((it) => it.id !== 'lantern2'),
+        description: {
+          en: 'The hanging lantern went out and vanished.',
+          'zh-CN': '悬挂的灯笼熄灭消失了。',
+          'zh-TW': '懸掛的燈籠熄滅消失了。',
+        },
+      },
+    ],
+  },
 ];
+
+// Types whose visual delta can be scaled continuously (a small nudge vs. a big one).
+// Structural types (removal/addition/state/replacement/count) are inherently binary —
+// an item is either there or not — so they can't be made "subtler," only avoided.
+const CONTINUOUS_SHIFT_TYPES: ShiftChangeType[] = ['movement', 'rotation', 'size', 'color'];
 
 export function generateShiftChallenge(difficulty: number, rand = Math.random): ShiftChallenge {
   const diff = Math.max(1, Math.min(10, difficulty));
   const preset = shiftPresets[Math.floor(rand() * shiftPresets.length)];
-  const changeChoice = preset.changes[Math.floor(rand() * preset.changes.length)];
+
+  // Higher difficulty biases toward change types that CAN be made subtle
+  // (movement/rotation/size) over always-obvious ones (an item appearing/vanishing/
+  // swapping), so difficulty changes how hard the change is to spot, not just the timer.
+  const subtleBias = (diff - 1) / 9; // 0 at diff 1 → 1 at diff 10
+  const weighted = preset.changes.map((c) => ({
+    change: c,
+    weight: CONTINUOUS_SHIFT_TYPES.includes(c.type) ? 0.4 + subtleBias * 1.6 : 1.6 - subtleBias * 1.2,
+  }));
+  const totalWeight = weighted.reduce((s, w) => s + w.weight, 0);
+  let roll = rand() * totalWeight;
+  let changeChoice = weighted[weighted.length - 1].change;
+  for (const w of weighted) {
+    if (roll < w.weight) {
+      changeChoice = w.change;
+      break;
+    }
+    roll -= w.weight;
+  }
 
   const sceneA = JSON.parse(JSON.stringify(preset.baseItems)) as ShiftItem[];
-  const sceneB = changeChoice.apply(sceneA);
+  let sceneB = changeChoice.apply(sceneA);
+
+  // For continuous changes, shrink the delta as difficulty rises — the full change at
+  // diff 1, down to ~35% of it at diff 10 — so the odd panel is genuinely subtler,
+  // not just timed tighter.
+  if (CONTINUOUS_SHIFT_TYPES.includes(changeChoice.type)) {
+    const original = sceneA.find((it) => it.id === changeChoice.targetId);
+    const fullChanged = sceneB.find((it) => it.id === changeChoice.targetId);
+    if (original && fullChanged) {
+      const lerpT = 1 - subtleBias * 0.65;
+      const blended: ShiftItem = {
+        ...fullChanged,
+        x: original.x + (fullChanged.x - original.x) * lerpT,
+        y: original.y + (fullChanged.y - original.y) * lerpT,
+        rotation: (original.rotation ?? 0) + ((fullChanged.rotation ?? 0) - (original.rotation ?? 0)) * lerpT,
+        scale: (original.scale ?? 1) + ((fullChanged.scale ?? 1) - (original.scale ?? 1)) * lerpT,
+      };
+      sceneB = sceneB.map((it) => (it.id === changeChoice.targetId ? blended : it));
+    }
+  }
 
   return {
     id: `shift-${Date.now()}-${Math.floor(rand() * 10000)}`,
@@ -1081,9 +1339,9 @@ export function generateShiftChallenge(difficulty: number, rand = Math.random): 
     changeType: changeChoice.type,
     changeDescription: changeChoice.description,
     prompt: {
-      en: 'Inspect Scene A, then observe Scene B. Tap what changed!',
-      'zh-CN': '观察场景 A，随后对比场景 B。点击发生变化的位置！',
-      'zh-TW': '觀察場景 A，隨後對比場景 B。點擊發生變化的位置！',
+      en: 'One panel is different from the rest. Find it and tap it!',
+      'zh-CN': '其中一个面板与其他不同，找出并点击它！',
+      'zh-TW': '其中一個面板與其他不同，找出並點擊它！',
     },
   };
 }
@@ -1283,19 +1541,146 @@ const perceivePresets: PerceivePreset[] = [
       'zh-TW': '彩虹需要太陽直射光照在水滴中發生色散折射，不可能出現在全封閉的黑暗地底洞穴中。',
     },
   },
+  {
+    theme: 'street',
+    themeTitle: { en: 'Sunny Park', 'zh-CN': '阳光公园', 'zh-TW': '陽光公園' },
+    difficulty: 1,
+    items: [
+      { id: 'bench', name: { en: 'Park Bench', 'zh-CN': '公园长椅', 'zh-TW': '公園長椅' }, icon: '🪑', x: 25, y: 55, isAnomaly: false },
+      { id: 'tree', name: { en: 'Oak Tree', 'zh-CN': '橡树', 'zh-TW': '橡樹' }, icon: '🌳', x: 55, y: 30, isAnomaly: false },
+      { id: 'balloon', name: { en: 'Balloon', 'zh-CN': '气球', 'zh-TW': '氣球' }, icon: '🎈', x: 75, y: 25, isAnomaly: false },
+      { id: 'shark', name: { en: 'Great White Shark', 'zh-CN': '大白鲨', 'zh-TW': '大白鯊' }, icon: '🦈', x: 45, y: 68, isAnomaly: true },
+      { id: 'dog', name: { en: 'Dog', 'zh-CN': '小狗', 'zh-TW': '小狗' }, icon: '🐕', x: 20, y: 75, isAnomaly: false },
+    ],
+    explanation: {
+      en: 'A great white shark needs open ocean water and cannot be lying on dry park grass.',
+      'zh-CN': '大白鲨需要开阔的海水环境，不可能出现在干燥的公园草地上。',
+      'zh-TW': '大白鯊需要開闊的海水環境，不可能出現在乾燥的公園草地上。',
+    },
+  },
+  {
+    theme: 'kitchen',
+    themeTitle: { en: 'Classroom', 'zh-CN': '教室', 'zh-TW': '教室' },
+    difficulty: 3,
+    items: [
+      { id: 'board', name: { en: 'Chalkboard', 'zh-CN': '黑板', 'zh-TW': '黑板' }, icon: '📋', x: 50, y: 20, isAnomaly: false },
+      { id: 'desk2', name: { en: 'Student Desk', 'zh-CN': '课桌', 'zh-TW': '課桌' }, icon: '🪑', x: 30, y: 55, isAnomaly: false },
+      { id: 'book2', name: { en: 'Textbook', 'zh-CN': '教科书', 'zh-TW': '教科書' }, icon: '📖', x: 65, y: 50, isAnomaly: false },
+      { id: 'globe', name: { en: 'Globe', 'zh-CN': '地球仪', 'zh-TW': '地球儀' }, icon: '🌐', x: 78, y: 30, isAnomaly: false },
+      { id: 'anchor', name: { en: 'Ship Anchor', 'zh-CN': '船锚', 'zh-TW': '船錨' }, icon: '⚓', x: 25, y: 78, isAnomaly: true },
+    ],
+    explanation: {
+      en: 'A heavy ship anchor has no place resting on a classroom floor among desks and books.',
+      'zh-CN': '沉重的船锚不可能出现在摆满课桌和书本的教室地板上。',
+      'zh-TW': '沉重的船錨不可能出現在擺滿課桌和書本的教室地板上。',
+    },
+  },
+  {
+    theme: 'laboratory',
+    themeTitle: { en: 'Art Studio', 'zh-CN': '艺术画室', 'zh-TW': '藝術畫室' },
+    difficulty: 5,
+    items: [
+      { id: 'easel', name: { en: 'Easel', 'zh-CN': '画架', 'zh-TW': '畫架' }, icon: '🖼️', x: 35, y: 40, isAnomaly: false },
+      { id: 'palette', name: { en: 'Paint Palette', 'zh-CN': '调色盘', 'zh-TW': '調色盤' }, icon: '🎨', x: 55, y: 55, isAnomaly: false },
+      { id: 'brush', name: { en: 'Paint Brushes', 'zh-CN': '画笔', 'zh-TW': '畫筆' }, icon: '🖌️', x: 70, y: 35, isAnomaly: false },
+      { id: 'sculpture', name: { en: 'Clay Sculpture', 'zh-CN': '陶土雕塑', 'zh-TW': '陶土雕塑' }, icon: '🏺', x: 20, y: 65, isAnomaly: false },
+      { id: 'penguin2', name: { en: 'Live Penguin', 'zh-CN': '活企鹅', 'zh-TW': '活企鵝' }, icon: '🐧', x: 78, y: 70, isAnomaly: true },
+    ],
+    explanation: {
+      en: 'A live penguin needs a cold polar habitat, not a warm indoor art studio.',
+      'zh-CN': '活企鹅需要寒冷的极地栖息环境，不可能生活在温暖的室内画室中。',
+      'zh-TW': '活企鵝需要寒冷的極地棲息環境，不可能生活在溫暖的室內畫室中。',
+    },
+  },
+  {
+    theme: 'arctic',
+    themeTitle: { en: 'Desert Dunes', 'zh-CN': '沙漠沙丘', 'zh-TW': '沙漠沙丘' },
+    difficulty: 7,
+    items: [
+      { id: 'dune', name: { en: 'Sand Dune', 'zh-CN': '沙丘', 'zh-TW': '沙丘' }, icon: '🏜️', x: 40, y: 55, isAnomaly: false },
+      { id: 'cactus2', name: { en: 'Cactus', 'zh-CN': '仙人掌', 'zh-TW': '仙人掌' }, icon: '🌵', x: 25, y: 65, isAnomaly: false },
+      { id: 'camel', name: { en: 'Camel', 'zh-CN': '骆驼', 'zh-TW': '駱駝' }, icon: '🐫', x: 65, y: 50, isAnomaly: false },
+      { id: 'sun2', name: { en: 'Blazing Sun', 'zh-CN': '烈日', 'zh-TW': '烈日' }, icon: '☀️', x: 78, y: 20, isAnomaly: false },
+      { id: 'iceberg2', name: { en: 'Floating Iceberg', 'zh-CN': '漂浮冰山', 'zh-TW': '漂浮冰山' }, icon: '🧊', x: 30, y: 30, isAnomaly: true },
+    ],
+    explanation: {
+      en: 'A frozen iceberg would melt instantly under a scorching desert sun.',
+      'zh-CN': '冰冷的冰山在灼热的沙漠烈日下会瞬间融化，不可能存在。',
+      'zh-TW': '冰冷的冰山在灼熱的沙漠烈日下會瞬間融化，不可能存在。',
+    },
+  },
+  {
+    theme: 'space',
+    themeTitle: { en: 'Volcanic Lava Field', 'zh-CN': '火山熔岩地带', 'zh-TW': '火山熔岩地帶' },
+    difficulty: 9,
+    items: [
+      { id: 'lava', name: { en: 'Flowing Lava', 'zh-CN': '流动熔岩', 'zh-TW': '流動熔岩' }, icon: '🌋', x: 40, y: 45, isAnomaly: false },
+      { id: 'smoke', name: { en: 'Ash Smoke', 'zh-CN': '火山灰烟', 'zh-TW': '火山灰煙' }, icon: '💨', x: 65, y: 25, isAnomaly: false },
+      { id: 'rock2', name: { en: 'Volcanic Rock', 'zh-CN': '火山岩', 'zh-TW': '火山岩' }, icon: '🪨', x: 22, y: 60, isAnomaly: false },
+      { id: 'ember', name: { en: 'Glowing Embers', 'zh-CN': '灼热余烬', 'zh-TW': '灼熱餘燼' }, icon: '🔥', x: 75, y: 55, isAnomaly: false },
+      { id: 'snowflake', name: { en: 'Snowflake', 'zh-CN': '雪花', 'zh-TW': '雪花' }, icon: '❄️', x: 50, y: 75, isAnomaly: true },
+    ],
+    explanation: {
+      en: 'A delicate snowflake would vaporize instantly near molten volcanic lava, not drift gently.',
+      'zh-CN': '精巧的雪花在灼热的火山熔岩附近会瞬间气化，绝不可能悠然飘落。',
+      'zh-TW': '精巧的雪花在灼熱的火山熔岩附近會瞬間氣化，絕不可能悠然飄落。',
+    },
+  },
+  {
+    theme: 'laboratory',
+    themeTitle: { en: 'Clean-Room Server Vault', 'zh-CN': '无尘数据机房', 'zh-TW': '無塵資料機房' },
+    difficulty: 10,
+    items: [
+      { id: 'rack', name: { en: 'Server Rack', 'zh-CN': '服务器机柜', 'zh-TW': '伺服器機櫃' }, icon: '🖥️', x: 30, y: 40, isAnomaly: false },
+      { id: 'cable', name: { en: 'Fiber Cables', 'zh-CN': '光纤线缆', 'zh-TW': '光纖線纜' }, icon: '🔌', x: 55, y: 55, isAnomaly: false },
+      { id: 'badge', name: { en: 'Access Badge', 'zh-CN': '门禁卡', 'zh-TW': '門禁卡' }, icon: '🪪', x: 70, y: 30, isAnomaly: false },
+      { id: 'vent', name: { en: 'Cooling Vent', 'zh-CN': '散热风口', 'zh-TW': '散熱風口' }, icon: '🌀', x: 20, y: 65, isAnomaly: false },
+      { id: 'bird', name: { en: 'Live Pigeon', 'zh-CN': '活鸽子', 'zh-TW': '活鴿子' }, icon: '🐦', x: 78, y: 68, isAnomaly: true },
+    ],
+    explanation: {
+      en: 'A live pigeon roosting among the racks would never be allowed inside a sealed clean-room data vault.',
+      'zh-CN': '密封无尘的数据机房绝不可能允许活鸽子在机柜间栖息出没。',
+      'zh-TW': '密封無塵的資料機房絕不可能允許活鴿子在機櫃間棲息出沒。',
+    },
+  },
 ];
+
+// Small pool of neutral, theme-agnostic clutter used to raise item density (and thus
+// how hard the real anomaly is to spot) at higher difficulty, without having to author
+// a bespoke high-density preset per theme.
+const PERCEIVE_FILLER_ICONS = ['✨', '🔘', '🧵', '📎', '🪣', '🧻', '🪤', '🧯'];
 
 export function generatePerceiveChallenge(difficulty: number, rand = Math.random): PerceiveChallenge {
   const diff = Math.max(1, Math.min(10, difficulty));
-  const preset = perceivePresets[Math.floor(rand() * perceivePresets.length)];
+
+  // Preset selection previously ignored `diff` entirely — a "beginner" round could draw
+  // the hardest scene and vice versa. Bias toward presets whose authored difficulty is
+  // close to what was requested, so difficulty actually changes which anomaly you face.
+  const closeMatches = perceivePresets.filter((p) => Math.abs(p.difficulty - diff) <= 2);
+  const candidates = closeMatches.length > 0 ? closeMatches : perceivePresets;
+  const preset = candidates[Math.floor(rand() * candidates.length)];
   const anomaly = preset.items.find((it) => it.isAnomaly)!;
 
   // Add random organic position shifts (+/- 3%) so items aren't on identical fixed coordinates
-  const jitteredItems = preset.items.map((item) => ({
+  const jitteredItems: typeof preset.items = preset.items.map((item) => ({
     ...item,
     x: Math.max(10, Math.min(85, item.x + (rand() * 6 - 3))),
     y: Math.max(15, Math.min(80, item.y + (rand() * 6 - 3))),
   }));
+
+  // At higher difficulty, sprinkle in extra non-anomalous clutter so the true anomaly
+  // has more visual competition for attention — density scales with diff, not just timer.
+  const fillerCount = diff >= 8 ? 4 : diff >= 6 ? 3 : diff >= 4 ? 1 : 0;
+  for (let i = 0; i < fillerCount; i++) {
+    jitteredItems.push({
+      id: `filler-${i}`,
+      name: { en: 'Clutter', 'zh-CN': '杂物', 'zh-TW': '雜物' },
+      icon: PERCEIVE_FILLER_ICONS[Math.floor(rand() * PERCEIVE_FILLER_ICONS.length)],
+      x: Math.max(10, Math.min(85, rand() * 75 + 10)),
+      y: Math.max(15, Math.min(80, rand() * 65 + 15)),
+      isAnomaly: false,
+    });
+  }
 
   return {
     id: `perceive-${Date.now()}-${Math.floor(rand() * 10000)}`,

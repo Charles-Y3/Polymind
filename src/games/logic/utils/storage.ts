@@ -1,145 +1,122 @@
-import { PlayerProgress, MindProfile, WorldId } from '../types';
+import { PersonalBest, PlayerProgress, SkillAxis } from '../types';
 
-export interface LeaderboardEntry {
-  id: string;
-  name: string;
-  icon: string;
-  score: number;
-  isPlayer?: boolean;
-  rank: number;
-}
+const PROGRESS_KEY = 'machine_mind_player_progress_v1';
 
-const BOT_NAMES = [
-  'Cipher', 'Vector', 'Axiom', 'Recursion', 'Quanta', 'Paradox',
-  'Lambda', 'Entropy', 'Fractal', 'Neuron', 'Codex', 'Nexus',
-];
-const BOT_SCORES = [3200, 2850, 2600, 2340, 2100, 1880, 1650, 1420, 1200, 980, 760, 540];
-
-export function generateLeaderboard(playerName: string, playerScore: number): LeaderboardEntry[] {
-  const entries: LeaderboardEntry[] = BOT_NAMES.map((name, i) => ({
-    id: `bot-${i}`,
-    name,
-    icon: '🤖',
-    score: BOT_SCORES[i] ?? 500,
-    rank: i + 1,
-  }));
-
-  entries.push({
-    id: 'player',
-    name: playerName,
-    icon: '🧠',
-    score: playerScore,
-    isPlayer: true,
-    rank: 1,
-  });
-
-  entries.sort((a, b) => b.score - a.score);
-  return entries.map((entry, idx) => ({ ...entry, rank: idx + 1 }));
-}
-
-const STORAGE_KEY = 'machine_mind_player_progress_v1';
-
-export const initialMindProfile: MindProfile = {
-  patternRecognition: 25,
-  deduction: 20,
-  hypothesisTesting: 15,
-  logicalConditions: 15,
-  abstractThinking: 20,
-  problemSolving: 25,
+const DEFAULT_MIND_PROFILE: Record<SkillAxis, number> = {
+  patternRecognition: 30,
+  deduction: 30,
+  circuitLogic: 30,
+  hypothesisTesting: 30,
+  spatialReasoning: 30,
+  ruleInference: 30,
 };
 
-export const defaultPlayerProgress: PlayerProgress = {
-  currentWorld: 1,
-  unlockedWorlds: [1],
-  completedPuzzleIds: [],
-  puzzleScores: {},
+const NAME_ADJECTIVES = ['Shadow', 'Silent', 'Iron', 'Ghost', 'Velvet', 'Copper', 'Midnight', 'Rapid'];
+const NAME_NOUNS = ['Fox', 'Cipher', 'Locksmith', 'Wraith', 'Falcon', 'Viper', 'Ronin', 'Specter'];
+
+function randomVaultName(): string {
+  const adj = NAME_ADJECTIVES[Math.floor(Math.random() * NAME_ADJECTIVES.length)];
+  const noun = NAME_NOUNS[Math.floor(Math.random() * NAME_NOUNS.length)];
+  const num = Math.floor(Math.random() * 90 + 10);
+  return `${adj}${noun}${num}`;
+}
+
+export const defaultProgress: PlayerProgress = {
+  schemaVersion: 2,
+  playerName: randomVaultName(),
   totalScore: 0,
-  mindProfile: { ...initialMindProfile },
+  mindProfile: { ...DEFAULT_MIND_PROFILE },
+  lockpicks: 3,
+  grade: 'brass',
+  heists: {},
+  gauntletBest: 0,
   dailyStreak: 0,
-  lastDailyDate: '',
-  dailyCompleted: false,
-  endlessHighScore: 0,
-  unlockedModes: ['choose', 'enter', 'build', 'discover'], // All modes available, journey unlocks systematically
-  soundEnabled: true,
-  reducedMotion: false,
+  lastDailyDate: null,
+  lastDailyResult: null,
+  bests: {},
+  achievements: {},
+  settings: { sound: true, reducedMotion: false },
 };
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+function migrateFromV1(raw: any): PlayerProgress {
+  const totalScore = typeof raw?.totalScore === 'number' ? raw.totalScore : 0;
+  const oldAxes: number[] = raw?.mindProfile ? Object.values(raw.mindProfile).filter((v: any) => typeof v === 'number') : [];
+  const carriedMean = oldAxes.length ? oldAxes.reduce((a, b) => a + b, 0) / oldAxes.length : 30;
+  const seeded = clamp(carriedMean, 0, 40);
+
+  return {
+    ...defaultProgress,
+    totalScore,
+    mindProfile: {
+      patternRecognition: seeded,
+      deduction: seeded,
+      circuitLogic: seeded,
+      hypothesisTesting: seeded,
+      spatialReasoning: seeded,
+      ruleInference: seeded,
+    },
+    dailyStreak: typeof raw?.dailyStreak === 'number' ? raw.dailyStreak : 0,
+    lastDailyDate: typeof raw?.lastDailyDate === 'string' ? raw.lastDailyDate : null,
+  };
+}
 
 export function loadPlayerProgress(): PlayerProgress {
-  if (typeof window === 'undefined') return defaultPlayerProgress;
+  if (typeof window === 'undefined') return defaultProgress;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultPlayerProgress;
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return { ...defaultProgress };
     const parsed = JSON.parse(raw);
-    return {
-      ...defaultPlayerProgress,
-      ...parsed,
-      mindProfile: {
-        ...initialMindProfile,
-        ...(parsed.mindProfile || {})
-      }
-    };
-  } catch (err) {
-    console.error('Failed to load player progress:', err);
-    return defaultPlayerProgress;
+    if (parsed?.schemaVersion === 2) {
+      return {
+        ...defaultProgress,
+        ...parsed,
+        mindProfile: { ...DEFAULT_MIND_PROFILE, ...parsed.mindProfile },
+        settings: { ...defaultProgress.settings, ...parsed.settings },
+      };
+    }
+    const migrated = migrateFromV1(parsed);
+    savePlayerProgress(migrated);
+    return migrated;
+  } catch {
+    return { ...defaultProgress };
   }
 }
 
 export function savePlayerProgress(progress: PlayerProgress): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  } catch (err) {
-    console.error('Failed to save player progress:', err);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // ignore quota errors
   }
 }
 
-// Calculate mind profile growth after completing a puzzle
-export function updateMindProfileOnCompletion(
-  currentProfile: MindProfile,
-  worldId: WorldId,
-  scoreEarned: number,
-  hintsUsed: number
-): MindProfile {
-  const boost = Math.min(10, Math.max(2, Math.floor(scoreEarned / 12)));
-  const penalty = hintsUsed * 2;
-  const netGain = Math.max(1, boost - penalty);
+export function updateAxisScores(
+  progress: PlayerProgress,
+  axis: SkillAxis,
+  performance: number,
+  weight = 0.15
+): PlayerProgress {
+  const current = progress.mindProfile[axis] ?? 30;
+  const next = Math.round(Math.max(0, Math.min(100, current * (1 - weight) + performance * weight)));
+  return { ...progress, mindProfile: { ...progress.mindProfile, [axis]: next } };
+}
 
-  const newProfile = { ...currentProfile };
+export function recordBest(progress: PlayerProgress, type: keyof PlayerProgress['bests'], timeMs: number): PlayerProgress {
+  const prev: PersonalBest = progress.bests[type] ?? { bestTimeMs: Infinity, cracks: 0 };
+  const bestTimeMs = Math.min(prev.bestTimeMs, timeMs);
+  return {
+    ...progress,
+    bests: { ...progress.bests, [type]: { bestTimeMs, cracks: prev.cracks + 1 } },
+  };
+}
 
-  switch (worldId) {
-    case 1: // Simple
-      newProfile.patternRecognition = Math.min(100, newProfile.patternRecognition + netGain + 2);
-      newProfile.deduction = Math.min(100, newProfile.deduction + netGain);
-      break;
-    case 2: // Pattern Sequences
-      newProfile.patternRecognition = Math.min(100, newProfile.patternRecognition + netGain + 1);
-      newProfile.abstractThinking = Math.min(100, newProfile.abstractThinking + netGain + 1);
-      break;
-    case 3: // Shape
-      newProfile.abstractThinking = Math.min(100, newProfile.abstractThinking + netGain + 2);
-      newProfile.patternRecognition = Math.min(100, newProfile.patternRecognition + netGain);
-      break;
-    case 4: // Combination
-      newProfile.problemSolving = Math.min(100, newProfile.problemSolving + netGain + 2);
-      newProfile.deduction = Math.min(100, newProfile.deduction + netGain + 1);
-      break;
-    case 5: // Conditional
-      newProfile.logicalConditions = Math.min(100, newProfile.logicalConditions + netGain + 3);
-      newProfile.deduction = Math.min(100, newProfile.deduction + netGain + 1);
-      break;
-    case 6: // Hidden Logic
-      newProfile.logicalConditions = Math.min(100, newProfile.logicalConditions + netGain + 2);
-      newProfile.abstractThinking = Math.min(100, newProfile.abstractThinking + netGain + 2);
-      break;
-    case 7: // Nested Machines
-      newProfile.problemSolving = Math.min(100, newProfile.problemSolving + netGain + 2);
-      newProfile.deduction = Math.min(100, newProfile.deduction + netGain + 2);
-      break;
-    case 8: // The Impossible Machine (Hypothesis Testing & Ambiguity)
-      newProfile.hypothesisTesting = Math.min(100, newProfile.hypothesisTesting + netGain + 4);
-      newProfile.problemSolving = Math.min(100, newProfile.problemSolving + netGain + 2);
-      break;
-  }
-
-  return newProfile;
+export function resetProgress(): PlayerProgress {
+  const fresh = { ...defaultProgress };
+  savePlayerProgress(fresh);
+  return fresh;
 }

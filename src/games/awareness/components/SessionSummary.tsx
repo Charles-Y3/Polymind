@@ -37,8 +37,10 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
 
   const isPerfect = results.length >= 5 && accuracy === 100;
   const mastery = calculateMasteryLevel(profile.xp);
+  // A percentile bracket derived from a fixed score curve is an honest heuristic; a
+  // specific "Global Rank #N" was previously fabricated with Math.random() since there's
+  // no real cross-player leaderboard backing this mode — dropped rather than faked.
   const percentile = getPercentile(totalScore);
-  const estimatedRank = Math.max(1, Math.floor((percentile / 100) * 2400) + Math.floor(Math.random() * 12));
 
   // Trigger celebration on load
   useEffect(() => {
@@ -79,11 +81,11 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
   const handleShare = () => {
     let shareText = '';
     if (language === 'en') {
-      shareText = `👁️ Spot Rush: I scored ${totalScore.toLocaleString()} pts (${accuracy}% Accuracy) in the Human Abilities Perception Test! Top ${percentile}% Rank #${estimatedRank}.`;
+      shareText = `👁️ Spot Rush: I scored ${totalScore.toLocaleString()} pts (${accuracy}% Accuracy) in the Human Abilities Perception Test! Top ${percentile}%.`;
     } else if (language === 'zh-CN') {
-      shareText = `👁️ 全知之瞳：我在人类能力感知测评中斩获 ${totalScore.toLocaleString()} 分（准确率 ${accuracy}%）！超越全服 ${percentile}% 玩家，全球估测排名 #${estimatedRank}。`;
+      shareText = `👁️ 全知之瞳：我在人类能力感知测评中斩获 ${totalScore.toLocaleString()} 分（准确率 ${accuracy}%）！超越全服 ${percentile}% 玩家。`;
     } else {
-      shareText = `👁️ 全知之瞳：我在人類能力感知測評中斬獲 ${totalScore.toLocaleString()} 分（準確率 ${accuracy}%）！超越全服 ${percentile}% 玩家，全球估測排名 #${estimatedRank}。`;
+      shareText = `👁️ 全知之瞳：我在人類能力感知測評中斬獲 ${totalScore.toLocaleString()} 分（準確率 ${accuracy}%）！超越全服 ${percentile}% 玩家。`;
     }
 
     if (navigator.clipboard) {
@@ -96,7 +98,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
   return (
     <div
       id="session-summary-view"
-      className="w-full min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6"
+      className="w-full h-full bg-slate-950 text-slate-100 flex flex-col items-center p-4 sm:p-6 overflow-y-auto"
     >
       <div className="w-full max-w-xl rounded-3xl bg-gradient-to-b from-slate-900/90 via-slate-900 to-slate-950 border border-slate-800 shadow-2xl p-6 sm:p-8 flex flex-col items-center text-center">
         {/* Prestige Perfect Perception Banner if 100% accuracy */}
@@ -115,11 +117,8 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           {totalScore.toLocaleString()}
         </div>
 
-        {/* Global Rank & Percentile Pill */}
+        {/* Percentile Pill */}
         <div className="flex items-center gap-2 mb-6">
-          <span className="px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-bold">
-            {t.globalRank} #{estimatedRank}
-          </span>
           <span className="px-3 py-1 rounded-full bg-indigo-950/70 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold">
             {t.topPercentile} {percentile}%
           </span>

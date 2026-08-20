@@ -5,12 +5,16 @@ interface VirtualTiltControlProps {
   onTiltChange: (x: number, y: number) => void;
   activeControlMode: 'sensor' | 'touch' | 'hybrid';
   hasSensorPermission: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 export const VirtualTiltControl: React.FC<VirtualTiltControlProps> = ({
   onTiltChange,
   activeControlMode,
   hasSensorPermission,
+  onDragStart,
+  onDragEnd,
 }) => {
   const [touchPos, setTouchPos] = useState({ x: 0, y: 0 });
   const isDragging = useRef(false);
@@ -54,6 +58,7 @@ export const VirtualTiltControl: React.FC<VirtualTiltControlProps> = ({
   // Touch / Pointer Drag Handler on Virtual Tilt Pad
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
+    onDragStart?.();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     updateTouchTilt(e);
   };
@@ -65,6 +70,7 @@ export const VirtualTiltControl: React.FC<VirtualTiltControlProps> = ({
 
   const handlePointerUp = () => {
     isDragging.current = false;
+    onDragEnd?.();
     setTouchPos({ x: 0, y: 0 });
     onTiltChange(0, 0);
   };
@@ -101,7 +107,7 @@ export const VirtualTiltControl: React.FC<VirtualTiltControlProps> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="relative w-28 h-28 rounded-full bg-slate-900/80 border-2 border-cyan-500/40 shadow-xl backdrop-blur-md flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-cyan-400 transition-colors"
+        className="relative w-28 h-28 rounded-full bg-slate-900/80 border-2 border-cyan-500/40 shadow-xl backdrop-blur-md flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-cyan-400 transition-colors touch-none select-none"
       >
         {/* Directional Arrows */}
         <div className="absolute inset-0 flex items-center justify-between px-2 text-slate-600 text-[10px] font-bold">

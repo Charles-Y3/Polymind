@@ -1,128 +1,200 @@
-export type InteractionMode = 'choose' | 'enter' | 'build' | 'discover';
+export type LockType = 'keypad' | 'tumbler' | 'circuit' | 'combination' | 'laser' | 'rulesnap';
 
-export type WorldId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type Grade = 'brass' | 'steel' | 'titanium' | 'obsidian';
 
-export type GameMode = 'journey' | 'learn' | 'daily' | 'endless' | 'challenge';
+export const GRADES: Grade[] = ['brass', 'steel', 'titanium', 'obsidian'];
 
-export type DataType = 'number' | 'sequence' | 'symbols' | 'grid';
+export type SkillAxis =
+  | 'patternRecognition'
+  | 'deduction'
+  | 'circuitLogic'
+  | 'hypothesisTesting'
+  | 'spatialReasoning'
+  | 'ruleInference';
 
-export interface SymbolItem {
-  shape: 'square' | 'circle' | 'triangle' | 'diamond' | 'star' | 'pentagon' | 'arrow';
-  color: string; // e.g., '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'
-  rotation?: number; // degrees 0, 90, 180, 270
-  size?: 'sm' | 'md' | 'lg';
-  count?: number;
+export const LOCK_TYPES: LockType[] = ['keypad', 'tumbler', 'circuit', 'combination', 'laser', 'rulesnap'];
+
+export const SKILL_BY_TYPE: Record<LockType, SkillAxis> = {
+  keypad: 'patternRecognition',
+  tumbler: 'deduction',
+  circuit: 'circuitLogic',
+  combination: 'hypothesisTesting',
+  laser: 'spatialReasoning',
+  rulesnap: 'ruleInference',
+};
+
+export interface BaseLockPuzzle {
+  id: string;
+  type: LockType;
+  grade: Grade;
+  seed: string;
+  timeLimitSec: number;
+  attempts: number;
+  probes?: number;
 }
 
-export type PuzzleDataValue = number | number[] | SymbolItem[] | string | string[];
-
-export interface PuzzleExample {
-  input: PuzzleDataValue;
-  output: PuzzleDataValue;
-  label?: string;
-  notes?: string;
+// --- Keypad Cipher ---
+export interface KeypadPuzzle extends BaseLockPuzzle {
+  type: 'keypad';
+  shown: number[];
+  predictCount: number;
+  ruleLabel: string;
+  next: (index: number) => number; // index 0-based continuation term
 }
 
-export interface WorldInfo {
-  id: WorldId;
-  title: string;
-  subtitle: string;
-  icon: string;
-  description: string;
-  primaryMode: InteractionMode;
-  color: string;
+// --- Tumbler Grid ---
+export type TumblerClueType = 'negation' | 'adjacency' | 'order' | 'parityOdd' | 'parityEven' | 'direct';
+export interface TumblerClue {
+  type: TumblerClueType;
+  key: string; // key label
+  key2?: string; // second key label, for adjacency/order
+  slot?: number; // 1-based slot number, for negation/direct
 }
-
-export interface RuleTokenOption {
+export interface TumblerKey {
   id: string;
   label: string;
-  category: 'op' | 'value' | 'transform' | 'condition';
   symbol?: string;
 }
-
-export interface DistinguishingExperiment {
-  id: string;
-  input: PuzzleDataValue;
-  label: string;
-  hypothesisAOutcome: PuzzleDataValue;
-  hypothesisBOutcome: PuzzleDataValue;
-  explanation: string;
+export interface TumblerPuzzle extends BaseLockPuzzle {
+  type: 'tumbler';
+  n: number;
+  keys: TumblerKey[];
+  clues: TumblerClue[];
+  solution: string[]; // keys[i].id occupies slot i
 }
 
-export interface Puzzle {
+// --- Circuit Breaker ---
+export type GateKind = 'AND' | 'OR' | 'NOT' | 'XOR' | 'NAND' | 'NOR';
+export interface Gate {
   id: string;
-  worldId: WorldId;
-  levelNumber: number;
-  worldTitle: string;
-  title: string;
-  description: string;
-  mode: InteractionMode;
-  dataType: DataType;
-  examples: PuzzleExample[];
-  question: {
-    input: PuzzleDataValue;
-    expectedOutput?: PuzzleDataValue;
-    choices?: PuzzleDataValue[]; // For Mode 1: Choose
-  };
-  expectedRule: {
-    description: string;
-    tokens?: string[]; // For Mode 3: Build
-    // Custom evaluator function or token verification
-    evaluate?: (input: any) => any;
-  };
-  // World 7 Nested pipeline steps
-  nestedPipeline?: Array<{
-    name: string;
-    transformDescription: string;
-    icon?: string;
-  }>;
-  // World 8 Impossible Machine ambiguous rules & experiments
-  ambiguityChallenge?: {
-    hypothesisA: string;
-    hypothesisB: string;
-    experiments: DistinguishingExperiment[];
-    correctHypothesis: 'A' | 'B';
-    correctExperimentId: string;
-  };
-  hints: [string, string, string];
-  explanation: string;
-  availableRuleTokens?: RuleTokenOption[]; // Tokens available in Mode 3
+  kind: GateKind;
+  inputs: string[]; // ids of switches or other gates
+}
+export interface CircuitPuzzle extends BaseLockPuzzle {
+  type: 'circuit';
+  inputIds: string[];
+  gates: Gate[];
+  outputId: string;
+  solutionCount: number;
 }
 
-export interface MindProfile {
-  patternRecognition: number; // 0 to 100 or 1-5 rating
-  deduction: number;
-  hypothesisTesting: number;
-  logicalConditions: number;
-  abstractThinking: number;
-  problemSolving: number;
+// --- Combination Crack ---
+export interface CombinationPuzzle extends BaseLockPuzzle {
+  type: 'combination';
+  length: number;
+  symbols: string[];
+  code: string[];
+  maxGuesses: number;
+}
+
+// --- Laser Grid ---
+export type MirrorOrientation = 0 | 1; // 0 = '/', 1 = '\'
+export interface LaserCell {
+  x: number;
+  y: number;
+  kind: 'empty' | 'blocker' | 'mirror' | 'emitter' | 'receiver';
+  orientation?: MirrorOrientation;
+  solvedOrientation?: MirrorOrientation;
+  emitDir?: 'N' | 'S' | 'E' | 'W';
+  // Non-path mirrors (decoys) are fixed in place — the player can't rotate them,
+  // only reason about how they redirect a wrongly-set path mirror's beam.
+  locked?: boolean;
+}
+export interface LaserPuzzle extends BaseLockPuzzle {
+  type: 'laser';
+  size: number;
+  cells: LaserCell[];
+  moveBudget: number;
+  // On higher grades the beam isn't shown live — only revealed for a moment per test.
+  maxBeamTests?: number;
+}
+
+// --- Rule Snap ---
+export interface RuleSnapCard {
+  id: string;
+  input: number;
+  output: number;
+  isValid: boolean; // consistent with the true rule
+}
+export interface RuleSnapPuzzle extends BaseLockPuzzle {
+  type: 'rulesnap';
+  examples: { input: number; output: number }[];
+  cards: RuleSnapCard[];
+  secondsPerCard: number;
+  requiredCorrect: number;
+  ruleLabel: string;
+}
+
+export type LockPuzzle =
+  | KeypadPuzzle
+  | TumblerPuzzle
+  | CircuitPuzzle
+  | CombinationPuzzle
+  | LaserPuzzle
+  | RuleSnapPuzzle;
+
+export interface ValidationResult {
+  correct: boolean;
+  detail?: string;
+  // partial feedback used by some lock types (e.g. combination pin feedback, tumbler correct-count)
+  extra?: any;
+}
+
+export interface HintPayload {
+  text: string;
+  reveal?: any;
+}
+
+export interface LockResult {
+  type: LockType;
+  grade: Grade;
+  cracked: boolean;
+  score: number;
+  hintsUsed: number;
+  attemptsUsed: number;
+  timeMs: number;
+  cleanCrack: boolean; // no hints, no wasted attempts
+  ruleDescription: string;
+}
+
+export type PlayModeId = 'heist' | 'daily' | 'gauntlet' | 'practice';
+
+export interface HeistDefinition {
+  id: string;
+  name: string;
+  emoji: string;
+  gradeOffset: number; // relative to player's selected grade, clamped
+  recipe: LockType[];
+}
+
+export interface PersonalBest {
+  bestTimeMs: number;
+  cracks: number;
+}
+
+export interface DailyResult {
+  date: string;
+  cracked: number;
+  total: number;
+  score: number;
 }
 
 export interface PlayerProgress {
-  currentWorld: WorldId;
-  unlockedWorlds: WorldId[];
-  completedPuzzleIds: string[];
-  puzzleScores: Record<string, number>;
+  schemaVersion: 2;
+  playerName: string;
   totalScore: number;
-  mindProfile: MindProfile;
+  mindProfile: Record<SkillAxis, number>;
+  lockpicks: number;
+  grade: Grade;
+  heists: Record<string, { stars: number; bestScore: number }>;
+  gauntletBest: number;
   dailyStreak: number;
-  lastDailyDate: string;
-  dailyCompleted: boolean;
-  dailyPuzzleId?: string;
-  endlessHighScore: number;
-  unlockedModes: InteractionMode[];
-  soundEnabled: boolean;
-  reducedMotion: boolean;
-}
-
-export interface SolutionAttempt {
-  puzzleId: string;
-  userAnswer?: PuzzleDataValue;
-  builtTokens?: string[];
-  selectedHypothesis?: 'A' | 'B';
-  testInputsRun?: Array<{ input: PuzzleDataValue; output: PuzzleDataValue }>;
-  hintsUsed: number;
-  attemptsCount: number;
-  isCorrect: boolean;
-  scoreEarned: number;
+  lastDailyDate: string | null;
+  lastDailyResult: DailyResult | null;
+  bests: Partial<Record<LockType, PersonalBest>>;
+  achievements: Record<string, string>;
+  settings: {
+    sound: boolean;
+    reducedMotion: boolean;
+  };
 }

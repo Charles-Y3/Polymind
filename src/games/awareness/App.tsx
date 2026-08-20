@@ -28,6 +28,7 @@ import {
 import { AchievementsModal } from './components/AchievementsModal';
 import { ChallengeView } from './components/ChallengeView';
 import { LeaderboardModal } from './components/LeaderboardModal';
+import { submitAwarenessScore } from './services/leaderboardService';
 import { MainMenu } from './components/MainMenu';
 import { MasteryModal } from './components/MasteryModal';
 import { Navbar } from './components/Navbar';
@@ -78,9 +79,14 @@ export default function App() {
   };
 
   // 1. Start Daily Challenge
+  // The first attempt each day is seeded purely by date, so every player gets the same
+  // fixed challenge for fair leaderboard comparison. Any replay the same day uses a fresh
+  // random seed instead, so "play again" doesn't just repeat the exact same content.
   const handleStartDaily = () => {
     const todayStr = new Date().toISOString().slice(0, 10);
-    const dailyList = generateDailyChallenges(todayStr);
+    const alreadyAttemptedToday = profile.lastDailyDate === todayStr;
+    const seed = alreadyAttemptedToday ? `${todayStr}-replay-${Math.floor(Math.random() * 1e9)}` : todayStr;
+    const dailyList = generateDailyChallenges(seed);
     setChallenges(dailyList);
     setPlayMode('daily');
     setModeTitle(translations[settings.language].dailyChallenge);
@@ -166,6 +172,7 @@ export default function App() {
 
     setProfile(updated);
     saveStoredProfile(updated);
+    submitAwarenessScore(updated);
     setCurrentView('summary');
   };
 

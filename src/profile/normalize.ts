@@ -5,7 +5,7 @@ import type {GameContribution} from './profileStore';
 const REFLEXES_SCORE_CAP = 10000; // gravity-tilt highestScore
 const RECALL_LEVEL_CAP = 20; // choice-clash's 20-tier level table
 const RECALL_STREAK_CAP = 20;
-const LOGIC_SCORE_CAP = 5000; // machine-mind totalScore
+const LOGIC_SCORE_CAP = 20000; // Logic Lock totalScore
 
 function readJson<T>(key: string): T | null {
   try {

@@ -318,6 +318,9 @@ export const translations = {
     allTime: 'All-Time Ranking',
     dailyRankSubtitle: 'Same 10 challenges for all players today',
     weeklyResetSubtitle: 'Resets every Monday 00:00 UTC',
+    refreshScores: 'Refresh',
+    loadingScores: 'Loading scores…',
+    noScoresYet: 'No scores yet — be the first!',
 
     // Daily Challenge
     dailyTitle: 'Today’s Perception Challenge',
@@ -471,6 +474,9 @@ export const translations = {
     allTime: '全时段荣誉榜',
     dailyRankSubtitle: '今日全球玩家统一 10 题定额测评',
     weeklyResetSubtitle: '每周一 00:00 UTC 自动重置',
+    refreshScores: '刷新',
+    loadingScores: '加载分数中…',
+    noScoresYet: '暂无记录——快来抢占第一！',
 
     // Daily Challenge
     dailyTitle: '今日感知统一测评',
@@ -624,6 +630,9 @@ export const translations = {
     allTime: '全時段榮譽榜',
     dailyRankSubtitle: '今日全球玩家統一 10 題定額測評',
     weeklyResetSubtitle: '每週一 00:00 UTC 自動重置',
+    refreshScores: '刷新',
+    loadingScores: '載入分數中…',
+    noScoresYet: '暫無記錄——快來搶占第一！',
 
     // Daily Challenge
     dailyTitle: '今日感知統一測評',

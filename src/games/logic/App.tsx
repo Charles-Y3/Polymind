@@ -1,246 +1,388 @@
-import React, { useState, useEffect } from 'react';
-import { GameMode, PlayerProgress, WorldId } from './types';
-import { loadPlayerProgress, savePlayerProgress, updateMindProfileOnCompletion } from './utils/storage';
-import { sound } from './utils/audio';
+import { useEffect, useRef, useState } from 'react';
+import { HEISTS } from './data/heists';
+import { createPrng } from './engine/rng';
+import { performanceScore } from './engine/scoring';
 import { LanguageProvider, useI18n } from './i18n/context';
-import { Header } from './components/Header';
-import { JourneyView } from './components/JourneyView';
-import { DailyMachineView } from './components/DailyMachineView';
-import { EndlessLabView } from './components/EndlessLabView';
-import { ChallengeLabView } from './components/ChallengeLabView';
-import { LearnTutorial } from './components/LearnTutorial';
-import { MindProfileModal } from './components/MindProfileModal';
+import { evaluateAchievements } from './data/achievements';
+import { sound } from './utils/audio';
+import { loadPlayerProgress, recordBest, savePlayerProgress, updateAxisScores } from './utils/storage';
+import { submitLogicScore } from './services/leaderboardService';
+import { Grade, GRADES, HeistDefinition, LOCK_TYPES, LockResult, LockType, PlayerProgress, PlayModeId, SKILL_BY_TYPE } from './types';
+
 import { AchievementsModal } from './components/AchievementsModal';
+import { HeistSelect } from './components/HeistSelect';
 import { LeaderboardModal } from './components/LeaderboardModal';
-import { Compass, Calendar, Infinity as InfinityIcon, Sliders, BookOpen, Brain, Trophy, Award } from 'lucide-react';
-import { Tile } from '../../ui';
+import { LockSession } from './components/LockSession';
+import { MainMenu } from './components/MainMenu';
+import { MindProfileModal } from './components/MindProfileModal';
+import { Navbar } from './components/Navbar';
+import { PersonalBestsModal } from './components/PersonalBestsModal';
+import { PracticeModal } from './components/PracticeModal';
+import { ResultModal } from './components/ResultModal';
+import { SessionSummary } from './components/SessionSummary';
+import { SettingsModal } from './components/SettingsModal';
 
-function MainApp() {
-  const [progress, setProgress] = useState<PlayerProgress>(() => loadPlayerProgress());
-  const [gameMode, setGameMode] = useState<GameMode>('journey');
-  const [showMindProfile, setShowMindProfile] = useState<boolean>(false);
-  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
-  const [showAchievements, setShowAchievements] = useState<boolean>(false);
+function shiftGrade(grade: Grade, offset: number): Grade {
+  const idx = Math.max(0, Math.min(GRADES.length - 1, GRADES.indexOf(grade) + offset));
+  return GRADES[idx];
+}
+
+interface RunLock {
+  type: LockType;
+  grade: Grade;
+  seed?: string;
+  modeMult?: number;
+}
+
+function AppInner() {
   const { t } = useI18n();
+  const [progress, setProgress] = useState<PlayerProgress>(loadPlayerProgress);
+  const [view, setView] = useState<'menu' | 'heist-select' | 'playing' | 'summary'>('menu');
+  const [playMode, setPlayMode] = useState<PlayModeId>('practice');
 
-  // Sync audio enabled state with progress settings
+  const [queue, setQueue] = useState<RunLock[]>([]);
+  const [lockIndex, setLockIndex] = useState(0);
+  const [alarm, setAlarm] = useState(0);
+  const alarmRef = useRef(0);
+  const [heistBusted, setHeistBusted] = useState(false);
+  const [runStreak, setRunStreak] = useState(0);
+  const [results, setResults] = useState<LockResult[]>([]);
+  const [pendingResult, setPendingResult] = useState<LockResult | null>(null);
+  const [currentHeist, setCurrentHeist] = useState<HeistDefinition | null>(null);
+
+  const [gauntletDepth, setGauntletDepth] = useState(0);
+  const [gauntletBanked, setGauntletBanked] = useState(0);
+  const [awaitingBankPush, setAwaitingBankPush] = useState(false);
+
+  const [runOutcome, setRunOutcome] = useState<{ stars?: number; busted?: boolean }>({});
+
+  const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [isAchievementsOpen, setAchievementsOpen] = useState(false);
+  const [isPracticeOpen, setPracticeOpen] = useState(false);
+  const [isMindProfileOpen, setMindProfileOpen] = useState(false);
+  const [isBestsOpen, setBestsOpen] = useState(false);
+  const [isLeaderboardOpen, setLeaderboardOpen] = useState(false);
+
   useEffect(() => {
-    sound.enabled = progress.soundEnabled;
-  }, [progress.soundEnabled]);
+    sound.setEnabled(progress.settings.sound);
+  }, [progress.settings.sound]);
 
-  // Save progress changes to LocalStorage
-  const handleUpdateProgress = (updater: (prev: PlayerProgress) => PlayerProgress) => {
-    setProgress((prev) => {
-      const updated = updater(prev);
-      savePlayerProgress(updated);
-      return updated;
-    });
+  const persist = (next: PlayerProgress) => {
+    const { progress: withAchievements } = evaluateAchievements(next);
+    setProgress(withAchievements);
+    savePlayerProgress(withAchievements);
   };
 
-  const handleToggleSound = () => {
-    handleUpdateProgress((p) => ({
-      ...p,
-      soundEnabled: !p.soundEnabled,
-    }));
+  const changeGrade = (grade: Grade) => persist({ ...progress, grade });
+  const renamePlayer = (playerName: string) => persist({ ...progress, playerName });
+  const updateSettings = (settings: PlayerProgress['settings']) => persist({ ...progress, settings });
+  const resetProgressHandler = () => {
+    if (typeof window !== 'undefined' && !window.confirm(t('settings.resetProgress') + '?')) return;
+    persist(loadPlayerProgress());
   };
 
-  const handleCompleteJourneyPuzzle = (
-    puzzleId: string,
-    worldId: WorldId,
-    scoreEarned: number,
-    hintsUsed: number
-  ) => {
-    handleUpdateProgress((p) => {
-      const completedIds = p.completedPuzzleIds.includes(puzzleId)
-        ? p.completedPuzzleIds
-        : [...p.completedPuzzleIds, puzzleId];
+  const carriesAlarm = playMode === 'heist' || playMode === 'gauntlet';
 
-      const newScore = p.totalScore + scoreEarned;
+  const currentLock = queue[lockIndex];
 
-      // Unlock next world if world 1-7 completed
-      const nextWorldId = (worldId + 1) as WorldId;
-      const unlockedWorlds =
-        worldId < 8 && !p.unlockedWorlds.includes(nextWorldId)
-          ? [...p.unlockedWorlds, nextWorldId]
-          : p.unlockedWorlds;
-
-      const newMindProfile = updateMindProfileOnCompletion(
-        p.mindProfile,
-        worldId,
-        scoreEarned,
-        hintsUsed
-      );
-
-      return {
-        ...p,
-        completedPuzzleIds: completedIds,
-        totalScore: newScore,
-        unlockedWorlds,
-        mindProfile: newMindProfile,
-      };
-    });
+  // ---- run starters ----
+  const startHeist = (heist: HeistDefinition) => {
+    const grade = shiftGrade(progress.grade, heist.gradeOffset);
+    setCurrentHeist(heist);
+    setQueue(heist.recipe.map((type) => ({ type, grade })));
+    setLockIndex(0);
+    setAlarm(0);
+    alarmRef.current = 0;
+    setHeistBusted(false);
+    setRunStreak(0);
+    setResults([]);
+    setRunOutcome({});
+    setPlayMode('heist');
+    setView('playing');
   };
 
-  const handleCompleteDailyMachine = (scoreEarned: number) => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    handleUpdateProgress((p) => {
-      const newStreak = p.lastDailyDate === todayStr ? p.dailyStreak : p.dailyStreak + 1;
-      return {
-        ...p,
-        dailyStreak: newStreak,
-        lastDailyDate: todayStr,
-        dailyCompleted: true,
-        totalScore: p.totalScore + scoreEarned,
-      };
-    });
+  const startDaily = () => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (progress.lastDailyDate === todayStr) return;
+    const rng = createPrng(`daily-${todayStr}`);
+    const shuffled = [...LOCK_TYPES].sort(() => rng() - 0.5);
+    const picks = shuffled.slice(0, 3);
+    setQueue(picks.map((type, i) => ({ type, grade: progress.grade, seed: `daily-${todayStr}-${i}` })));
+    setLockIndex(0);
+    setAlarm(0);
+    setRunStreak(0);
+    setResults([]);
+    setRunOutcome({});
+    setPlayMode('daily');
+    setView('playing');
   };
 
-  const handleEarnScore = (score: number) => {
-    handleUpdateProgress((p) => ({
-      ...p,
-      totalScore: p.totalScore + score,
-    }));
+  const startGauntlet = () => {
+    const grade = shiftGrade(progress.grade, -1);
+    const type = LOCK_TYPES[Math.floor(Math.random() * LOCK_TYPES.length)];
+    setQueue([{ type, grade, modeMult: 1 }]);
+    setLockIndex(0);
+    setAlarm(0);
+    alarmRef.current = 0;
+    setRunStreak(0);
+    setResults([]);
+    setGauntletDepth(0);
+    setGauntletBanked(0);
+    setAwaitingBankPush(false);
+    setRunOutcome({});
+    setPlayMode('gauntlet');
+    setView('playing');
   };
 
-  const MODE_TABS: {mode: GameMode; label: string; icon: React.ReactNode; accent: string}[] = [
-    {mode: 'journey', label: t('nav.journey'), icon: <Compass className="w-3.5 h-3.5" />, accent: 'violet'},
-    {mode: 'daily', label: t('nav.daily'), icon: <Calendar className="w-3.5 h-3.5 text-amber-400" />, accent: 'amber'},
-    {mode: 'endless', label: t('nav.endless'), icon: <InfinityIcon className="w-3.5 h-3.5 text-emerald-400" />, accent: 'emerald'},
-    {mode: 'challenge', label: t('nav.challenge'), icon: <Sliders className="w-3.5 h-3.5 text-purple-400" />, accent: 'purple'},
-    {mode: 'learn', label: t('nav.learn'), icon: <BookOpen className="w-3.5 h-3.5 text-blue-400" />, accent: 'blue'},
-  ];
-
-  const ACCENT_ACTIVE: Record<string, string> = {
-    violet: 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm',
-    amber: 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm',
-    emerald: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm',
-    purple: 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm',
-    blue: 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm',
+  const startPractice = (type: LockType, grade: Grade) => {
+    setPracticeOpen(false);
+    setQueue([{ type, grade, modeMult: 0.25 }]);
+    setLockIndex(0);
+    setAlarm(0);
+    setRunStreak(0);
+    setResults([]);
+    setRunOutcome({});
+    setPlayMode('practice');
+    setView('playing');
   };
+
+  // ---- progress bookkeeping shared by every mode ----
+  const applyResultToProgress = (result: LockResult) => {
+    let next = { ...progress };
+    const perf = performanceScore(result.cracked, result.grade, result.hintsUsed);
+    next = updateAxisScores(next, SKILL_BY_TYPE[result.type], perf);
+    // Gauntlet loot is held in gauntletBanked until the player walks away.
+    if (playMode !== 'gauntlet') {
+      next.totalScore += result.score;
+    }
+    if (result.cracked) {
+      next = recordBest(next, result.type, result.timeMs);
+    }
+    persist(next);
+  };
+
+  const handleResult = (result: LockResult) => {
+    setResults((r) => [...r, result]);
+    setRunStreak(result.cleanCrack ? runStreak + 1 : 0);
+    applyResultToProgress(result);
+
+    if (playMode === 'heist') {
+      setHeistBusted(alarmRef.current >= 100);
+    }
+
+    if (playMode === 'gauntlet') {
+      if (!result.cracked) {
+        // bust: unbanked loot is lost
+        setRunOutcome({ busted: true });
+        setPendingResult(result);
+        return;
+      }
+      setGauntletBanked((b) => b + result.score);
+      setPendingResult(result);
+      setAwaitingBankPush(true);
+      return;
+    }
+
+    setPendingResult(result);
+  };
+
+  const finishHeist = (finalResults: LockResult[], busted: boolean) => {
+    if (!currentHeist) return;
+    const headroom = 100 - alarm;
+    const stars = busted ? 0 : headroom >= 70 ? 3 : headroom >= 40 ? 2 : 1;
+    const score = finalResults.reduce((s, r) => s + r.score, 0);
+    const prev = progress.heists[currentHeist.id] ?? { stars: 0, bestScore: 0 };
+    const next = {
+      ...progress,
+      heists: { ...progress.heists, [currentHeist.id]: { stars: Math.max(prev.stars, stars), bestScore: Math.max(prev.bestScore, score) } },
+    };
+    persist(next);
+    submitLogicScore(next);
+    setRunOutcome({ stars, busted });
+    setView('summary');
+  };
+
+  const finishDaily = (finalResults: LockResult[]) => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const allCracked = finalResults.every((r) => r.cracked);
+    const nextStreak = allCracked ? (progress.lastDailyDate === yesterday ? progress.dailyStreak + 1 : 1) : 0;
+    const next = {
+      ...progress,
+      dailyStreak: nextStreak,
+      lastDailyDate: todayStr,
+      lastDailyResult: {
+        date: todayStr,
+        cracked: finalResults.filter((r) => r.cracked).length,
+        total: finalResults.length,
+        score: finalResults.reduce((s, r) => s + r.score, 0),
+      },
+    };
+    persist(next);
+    submitLogicScore(next);
+    setView('summary');
+  };
+
+  const advanceAfterResult = () => {
+    const result = pendingResult;
+    setPendingResult(null);
+    if (!result) return;
+
+    if (playMode === 'heist') {
+      if (heistBusted) {
+        finishHeist(results, true);
+        return;
+      }
+      if (lockIndex + 1 >= queue.length) {
+        finishHeist(results, false);
+        return;
+      }
+      setLockIndex(lockIndex + 1);
+      return;
+    }
+
+    if (playMode === 'daily') {
+      if (lockIndex + 1 >= queue.length) {
+        finishDaily(results);
+        return;
+      }
+      setLockIndex(lockIndex + 1);
+      return;
+    }
+
+    // practice: single lock, straight to summary
+    submitLogicScore(progress);
+    setView('summary');
+  };
+
+  const handleBank = () => {
+    const next = { ...progress, totalScore: progress.totalScore + gauntletBanked, gauntletBest: Math.max(progress.gauntletBest, gauntletBanked) };
+    persist(next);
+    submitLogicScore(next);
+    setPendingResult(null);
+    setAwaitingBankPush(false);
+    setRunOutcome({ busted: false });
+    setView('summary');
+  };
+
+  const handlePush = () => {
+    setPendingResult(null);
+    setAwaitingBankPush(false);
+    const newDepth = gauntletDepth + 1;
+    setGauntletDepth(newDepth);
+    const grade = shiftGrade(progress.grade, -1 + Math.floor(newDepth / 3));
+    const type = LOCK_TYPES[Math.floor(Math.random() * LOCK_TYPES.length)];
+    setQueue([...queue, { type, grade, modeMult: 1 + newDepth * 0.25 }]);
+    setLockIndex(lockIndex + 1);
+  };
+
+  const handleGauntletBust = () => {
+    setPendingResult(null);
+    setRunOutcome({ busted: true });
+    setView('summary');
+  };
+
+  const handleQuit = () => setView(view === 'playing' ? 'menu' : view);
+
+  const handlePlayAgain = () => {
+    if (playMode === 'heist' && currentHeist) startHeist(currentHeist);
+    else if (playMode === 'daily') setView('menu');
+    else if (playMode === 'gauntlet') startGauntlet();
+    else setPracticeOpen(true);
+  };
+
+  const onHintUsed = () => persist({ ...progress, lockpicks: Math.max(0, progress.lockpicks - 1) });
 
   return (
-    <div className="h-full bg-slate-950 text-slate-100 flex flex-col overflow-hidden font-sans selection:bg-violet-500 selection:text-slate-950">
-      {/* Header Bar */}
-      <Header
-        progress={progress}
-        onToggleSound={handleToggleSound}
-        onGoHome={() => setGameMode('journey')}
-      />
+    <div className="h-full bg-slate-950 text-slate-100 antialiased font-sans flex flex-col overflow-hidden">
+      <Navbar progress={progress} onOpenSettings={() => setSettingsOpen(true)} />
 
-      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
-
-      {/* Hero */}
-      <div className="shrink-0 flex flex-col items-center text-center pt-8 pb-1 max-w-2xl mx-auto w-full">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-950/80 border border-violet-800/60 text-violet-400 text-xs font-semibold mb-2 shadow-lg">
-          <Compass className="w-3.5 h-3.5" />
-          <span>{t('brand.tagline')}</span>
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-violet-200 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
-          {t('brand.hook')}
-        </h1>
-      </div>
-
-      {/* Mode Tab Switcher */}
-      <div className="shrink-0 px-2 py-4 max-w-2xl mx-auto w-full">
-        <nav className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800/80 shadow-lg backdrop-blur-md w-full">
-          {MODE_TABS.map((tab) => (
-            <button
-              key={tab.mode}
-              onClick={() => { sound.playClick(); setGameMode(tab.mode); }}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                gameMode === tab.mode
-                  ? ACCENT_ACTIVE[tab.accent]
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Main Mode View Container */}
-      <main className="py-2 px-2 sm:px-4 max-w-2xl mx-auto w-full">
-        {gameMode === 'journey' && (
-          <JourneyView
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        {view === 'menu' && (
+          <MainMenu
             progress={progress}
-            onCompletePuzzle={handleCompleteJourneyPuzzle}
+            onChangeGrade={changeGrade}
+            onStartHeists={() => setView('heist-select')}
+            onStartDaily={startDaily}
+            onStartGauntlet={startGauntlet}
+            onOpenPractice={() => setPracticeOpen(true)}
+            onOpenMindProfile={() => setMindProfileOpen(true)}
+            onOpenBests={() => setBestsOpen(true)}
+            onOpenAchievements={() => setAchievementsOpen(true)}
+            onOpenLeaderboard={() => setLeaderboardOpen(true)}
           />
         )}
 
-        {gameMode === 'daily' && (
-          <DailyMachineView
-            onCompleteDaily={handleCompleteDailyMachine}
-            dailyStreak={progress.dailyStreak}
-          />
+        {view === 'heist-select' && <HeistSelect progress={progress} onSelect={startHeist} onBack={() => setView('menu')} />}
+
+        {view === 'playing' && currentLock && (
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden mx-auto w-full max-w-2xl">
+            <LockSession
+              key={`${lockIndex}-${currentLock.type}-${currentLock.grade}-${currentLock.seed ?? ''}`}
+              type={currentLock.type}
+              grade={currentLock.grade}
+              seed={currentLock.seed}
+              alarm={carriesAlarm ? alarm : 0}
+              onAlarmChange={(next) => {
+                if (!carriesAlarm) return;
+                alarmRef.current = next;
+                setAlarm(next);
+              }}
+              streak={runStreak}
+              lockpicksAvailable={progress.lockpicks}
+              onHintUsed={onHintUsed}
+              modeMult={currentLock.modeMult}
+              onResult={handleResult}
+              onQuit={handleQuit}
+            />
+          </div>
         )}
 
-        {gameMode === 'endless' && (
-          <EndlessLabView
-            onEarnScore={handleEarnScore}
-            highScore={progress.endlessHighScore}
-          />
+        {view === 'summary' && (
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden max-w-2xl mx-auto w-full">
+            <SessionSummary
+              results={results}
+              playMode={playMode}
+              stars={runOutcome.stars}
+              bustedRun={runOutcome.busted}
+              onPlayAgain={handlePlayAgain}
+              onBackToMenu={() => setView('menu')}
+            />
+          </div>
         )}
-
-        {gameMode === 'challenge' && (
-          <ChallengeLabView onEarnScore={handleEarnScore} />
-        )}
-
-        {gameMode === 'learn' && (
-          <LearnTutorial onStartJourney={() => setGameMode('journey')} />
-        )}
-      </main>
       </div>
 
-      {/* Bottom Utility Row */}
-      <div className="shrink-0 max-w-2xl mx-auto w-full px-2 sm:px-4 pb-4">
-        <div className="flex items-center gap-3 h-[68px] pt-3 border-t border-slate-900">
-          <Tile
-            icon={<Brain className="w-5 h-5" />}
-            label={t('header.mindProfile')}
-            onClick={() => { sound.playClick(); setShowMindProfile(true); }}
-            accentText="text-purple-400"
-          />
-          <Tile
-            icon={<Trophy className="w-5 h-5" />}
-            label={t('header.leaderboard')}
-            onClick={() => { sound.playClick(); setShowLeaderboard(true); }}
-            accentText="text-amber-400"
-          />
-          <Tile
-            icon={<Award className="w-5 h-5" />}
-            label={t('header.achievements')}
-            onClick={() => { sound.playClick(); setShowAchievements(true); }}
-            accentText="text-violet-400"
-          />
-        </div>
-      </div>
-
-      {/* Mind Profile Modal */}
-      {showMindProfile && (
-        <MindProfileModal
-          mindProfile={progress.mindProfile}
-          totalScore={progress.totalScore}
-          onClose={() => setShowMindProfile(false)}
+      {pendingResult && playMode === 'gauntlet' && (
+        <ResultModal
+          result={pendingResult}
+          showBankOrPush={awaitingBankPush}
+          gauntletBanked={gauntletBanked}
+          nextLabel={t('result.next')}
+          onNext={pendingResult.cracked ? handlePush : handleGauntletBust}
+          onBank={handleBank}
+          onPush={handlePush}
+        />
+      )}
+      {pendingResult && playMode !== 'gauntlet' && (
+        <ResultModal
+          result={pendingResult}
+          nextLabel={lockIndex + 1 >= queue.length ? t('result.finish') : t('result.next')}
+          onNext={advanceAfterResult}
         />
       )}
 
-      {/* Leaderboard Modal */}
-      {showLeaderboard && (
-        <LeaderboardModal
-          totalScore={progress.totalScore}
-          onClose={() => setShowLeaderboard(false)}
-        />
-      )}
-
-      {/* Achievements Modal */}
-      {showAchievements && (
-        <AchievementsModal
-          progress={progress}
-          onClose={() => setShowAchievements(false)}
-        />
-      )}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        progress={progress}
+        onUpdateSettings={updateSettings}
+        onResetProgress={resetProgressHandler}
+      />
+      <AchievementsModal isOpen={isAchievementsOpen} onClose={() => setAchievementsOpen(false)} progress={progress} />
+      <MindProfileModal isOpen={isMindProfileOpen} onClose={() => setMindProfileOpen(false)} progress={progress} />
+      <PersonalBestsModal isOpen={isBestsOpen} onClose={() => setBestsOpen(false)} progress={progress} />
+      <LeaderboardModal isOpen={isLeaderboardOpen} onClose={() => setLeaderboardOpen(false)} progress={progress} onRenamePlayer={renamePlayer} />
+      <PracticeModal isOpen={isPracticeOpen} onClose={() => setPracticeOpen(false)} onStart={startPractice} />
     </div>
   );
 }
@@ -248,7 +390,7 @@ function MainApp() {
 export default function App() {
   return (
     <LanguageProvider>
-      <MainApp />
+      <AppInner />
     </LanguageProvider>
   );
 }

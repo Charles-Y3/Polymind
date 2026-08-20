@@ -103,6 +103,9 @@ export default function App() {
   // Sensor Calibration Zero Offset
   const calibRef = useRef({ beta: 0, gamma: 0 });
 
+  // True while the on-screen joystick is being dragged — sensor input must not fight it
+  const isJoystickActiveRef = useRef(false);
+
   // Active Modals
   const [showGyroModal, setShowGyroModal] = useState(false);
   const [isFirstTimeCalibration, setIsFirstTimeCalibration] = useState(false);
@@ -136,7 +139,10 @@ export default function App() {
       const normX = Math.min(Math.max(relGamma / 30, -1), 1);
       const normY = Math.min(Math.max(relBeta / 30, -1), 1);
 
-      if (stats.controlMode === 'sensor' || stats.controlMode === 'hybrid') {
+      if (
+        (stats.controlMode === 'sensor' || stats.controlMode === 'hybrid') &&
+        !isJoystickActiveRef.current
+      ) {
         setTiltX(normX);
         setTiltY(normY);
       }
@@ -433,6 +439,12 @@ export default function App() {
                 onTiltChange={(x, y) => {
                   setTiltX(x);
                   setTiltY(y);
+                }}
+                onDragStart={() => {
+                  isJoystickActiveRef.current = true;
+                }}
+                onDragEnd={() => {
+                  isJoystickActiveRef.current = false;
                 }}
                 activeControlMode={stats.controlMode}
                 hasSensorPermission={hasSensorPermission}
