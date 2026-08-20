@@ -478,7 +478,11 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     const now = Date.now();
 
     // 1. Time Survived & Score tracking
-    stats.timeSurvived = (now - stats.gameStartTime) / 1000;
+    // Accumulated from the capped per-frame dt, not (now - gameStartTime):
+    // a backgrounded tab/locked screen stops rAF but Date.now() keeps ticking,
+    // so a wall-clock diff would instantly satisfy the stage-clear check the
+    // moment the tab regains focus, firing a false victory mid-run.
+    stats.timeSurvived += dt;
 
     // Check Campaign Target Time Completion
     if (
