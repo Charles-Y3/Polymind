@@ -628,15 +628,14 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     if (isNaN(ball.x) || isNaN(ball.y)) { ball.x = 0; ball.y = 0; }
     if (isNaN(ball.vx) || isNaN(ball.vy)) { ball.vx = 0; ball.vy = 0; }
     const currentSpeed = Math.hypot(ball.vx, ball.vy);
-    // 520 was sized for the old, gentler friction (0.985/frame). Under the
-    // current sharper friction (0.945/frame) a hit's velocity decays ~3.7x
-    // faster per second, so knockback forces were scaled up to compensate -
-    // but they'd get clipped back down to 520 on the very next frame, which
-    // silently undid the compensation. Raised so a full-strength knockback
-    // can actually play out its burst instead of being clamped away.
+    // 520 was sized for the old, gentler friction (0.985/frame). Knockback
+    // forces below are scaled up (2.5x) to compensate for the current,
+    // sharper friction (0.945/frame) eating velocity much faster - raised
+    // just enough that the largest hit (bumper, 875) isn't clipped back
+    // down on the very next frame, which would silently undo the scaling.
     // Steady tilt-only speed tops out well under this (~150), so normal
     // tilt-driven movement is unaffected - this only matters for hits.
-    const maxSpeed = 1350;
+    const maxSpeed = 950;
     if (currentSpeed > maxSpeed) {
       ball.vx = (ball.vx / currentSpeed) * maxSpeed;
       ball.vy = (ball.vy / currentSpeed) * maxSpeed;
@@ -767,10 +766,8 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     const timeScale = hasSlowMo ? 0.4 : 1.0;
 
     // Knockback forces below are the original (pre-friction-change) values
-    // scaled by ~3.74x - the ratio between the old friction's per-second
-    // velocity decay (0.985/frame) and the current, sharper one (0.945/frame)
-    // - so a hit slides the ball roughly the same total distance it used to,
-    // instead of being swallowed by the stronger decay almost immediately.
+    // scaled by 2.5x, to compensate for the current friction eating a hit's
+    // velocity much faster than it used to without over-correcting.
     obstaclesRef.current.forEach((obs) => {
       if (obs.type === 'comet') {
         obs.x += obs.vx * timeScale * dt;
@@ -785,7 +782,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
           // Transfer kinetic impulse (knockback force pushing ball away)
           const nx = dist > 0 ? dx / dist : 1;
           const ny = dist > 0 ? dy / dist : 0;
-          const knockbackForce = ball.isAnchored ? 374 : 824;
+          const knockbackForce = ball.isAnchored ? 250 : 550;
 
           ball.vx += nx * knockbackForce + obs.vx * 0.3;
           ball.vy += ny * knockbackForce + obs.vy * 0.3;
@@ -809,7 +806,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
           if (Math.abs(dist - obs.radius) < 20) {
             // Push ball outward
             const angle = Math.atan2(ball.y - obs.y, ball.x - obs.x);
-            const force = ball.isAnchored ? 374 : 824;
+            const force = ball.isAnchored ? 250 : 550;
             ball.vx += Math.cos(angle) * force;
             ball.vy += Math.sin(angle) * force;
             addFloatingText(ball.x, ball.y - 15, 'SHOCKWAVE!', '#f97316');
@@ -838,7 +835,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
           const distToLine = Math.abs(-sinA * ball.x + cosA * ball.y);
 
           if (distToLine < ball.radius + (obs.width || 12) / 2) {
-            const pushForce = ball.isAnchored ? 299 : 674;
+            const pushForce = ball.isAnchored ? 200 : 450;
             ball.vx += -sinA * pushForce;
             ball.vy += cosA * pushForce;
             addFloatingText(ball.x, ball.y - 15, 'LASER ZAP!', '#f43f5e');
@@ -862,7 +859,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
         if (dist < ball.radius + obs.radius) {
           const nx = dist > 0 ? dx / dist : 1;
           const ny = dist > 0 ? dy / dist : 0;
-          const knockbackForce = ball.isAnchored ? 374 : 749;
+          const knockbackForce = ball.isAnchored ? 250 : 500;
 
           ball.vx += nx * knockbackForce;
           ball.vy += ny * knockbackForce;
@@ -889,8 +886,8 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
             const dist = Math.hypot(ball.x - obs.x, ball.y - obs.y);
             if (dist < obs.radius + ball.radius + 30) {
               const angle = Math.atan2(ball.y - obs.y, ball.x - obs.x);
-              ball.vx += Math.cos(angle) * 898;
-              ball.vy += Math.sin(angle) * 898;
+              ball.vx += Math.cos(angle) * 600;
+              ball.vy += Math.sin(angle) * 600;
               addFloatingText(ball.x, ball.y - 15, 'ANVIL CRASH!', '#64748b');
               triggerScreenShake(0.4, 16);
               handleHit(obs);
@@ -904,8 +901,8 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
         const dist = Math.hypot(ball.x - obs.x, ball.y - obs.y);
         if (dist < ball.radius + obs.radius) {
           const angle = Math.atan2(ball.y - obs.y, ball.x - obs.x);
-          ball.vx = Math.cos(angle) * 1310;
-          ball.vy = Math.sin(angle) * 1310;
+          ball.vx = Math.cos(angle) * 875;
+          ball.vy = Math.sin(angle) * 875;
           soundManager.playBounce(1.5);
           addFloatingText(obs.x, obs.y, 'BUMP!', '#eab308');
         }
