@@ -615,8 +615,8 @@ const focusShapes = [
   {
     symbol: '◢',
     name: { en: 'Top-Right Wedge ◥', 'zh-CN': '右上角三角切片 ◥', 'zh-TW': '右上角三角切片 ◥' },
-    targetRotation: 180,
-    distractorRotations: [0, 90, 270],
+    targetRotation: 270,
+    distractorRotations: [0, 90, 180],
   },
   {
     symbol: 'C',
@@ -644,7 +644,7 @@ const focusShapes = [
   },
   {
     symbol: '⇛',
-    name: { en: 'Upward Triple Arrow ⇚', 'zh-CN': '向左三叉箭 ⇚', 'zh-TW': '向左三叉箭 ⇚' },
+    name: { en: 'Leftward Triple Arrow ⇚', 'zh-CN': '向左三叉箭 ⇚', 'zh-TW': '向左三叉箭 ⇚' },
     targetRotation: 180,
     distractorRotations: [0, 90, 270],
   },

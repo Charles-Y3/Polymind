@@ -102,6 +102,10 @@ export default function App() {
 
   // Sensor Calibration Zero Offset
   const calibRef = useRef({ beta: 0, gamma: 0 });
+  // Most recent raw device angles, tracked so "Calibrate" can zero against
+  // the device's actual flat-on-table reading (sensors rarely report exact
+  // 0/0 when flat, so a hardcoded zero left a phantom tilt baked in)
+  const lastRawOrientationRef = useRef({ beta: 0, gamma: 0 });
 
   // True while the on-screen joystick is being dragged — sensor input must not fight it
   const isJoystickActiveRef = useRef(false);
@@ -130,6 +134,7 @@ export default function App() {
       // Raw angles
       const beta = e.beta; // pitch (-90 to +90)
       const gamma = e.gamma; // roll (-90 to +90)
+      lastRawOrientationRef.current = { beta, gamma };
 
       // Subtract calibration offset
       const relBeta = beta - calibRef.current.beta;
@@ -186,8 +191,9 @@ export default function App() {
   // Calibrate Zero Position
   const calibrateZero = () => {
     soundManager.playClick();
-    // Re-zero current raw angle if available
-    calibRef.current = { beta: 0, gamma: 0 };
+    // Zero against the device's current raw reading (its own sensor bias
+    // when flat), not a hardcoded (0, 0) that assumed a perfect sensor
+    calibRef.current = { ...lastRawOrientationRef.current };
     setTiltX(0);
     setTiltY(0);
   };
