@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivePowerUp } from '../types';
-import { Pause, RotateCcw, Shield, Anchor, Zap, Magnet, Maximize2, ShieldAlert } from 'lucide-react';
+import { Pause, RotateCcw, Shield, Anchor, Zap, Magnet, Maximize2, ShieldAlert, Clock } from 'lucide-react';
 
 interface TiltHUDProps {
   score: number;
@@ -11,6 +11,8 @@ interface TiltHUDProps {
   tiltY: number; // -1 to +1
   activePowerUps: ActivePowerUp[];
   stageTitle: string;
+  // Seconds left to clear the stage (campaign only). Undefined hides the chip.
+  secondsToClear?: number;
   onPause: () => void;
   onCalibrate: () => void;
 }
@@ -24,6 +26,7 @@ export const TiltHUD: React.FC<TiltHUDProps> = ({
   tiltY,
   activePowerUps,
   stageTitle,
+  secondsToClear,
   onPause,
   onCalibrate,
 }) => {
@@ -40,6 +43,12 @@ export const TiltHUD: React.FC<TiltHUDProps> = ({
           <span className="text-xs font-semibold text-cyan-400 uppercase tracking-widest bg-cyan-950/80 px-2.5 py-0.5 rounded-full border border-cyan-800/50 backdrop-blur-md w-fit">
             {stageTitle}
           </span>
+          {secondsToClear !== undefined && (
+            <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1 bg-amber-950/70 px-2 py-0.5 rounded-full border border-amber-700/50 backdrop-blur-md w-fit mt-0.5">
+              <Clock className="w-3 h-3" />
+              Clear in {secondsToClear}s
+            </span>
+          )}
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-3xl font-black text-white tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] font-mono">
               {score.toLocaleString()}

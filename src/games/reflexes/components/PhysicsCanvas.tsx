@@ -30,6 +30,7 @@ interface PhysicsCanvasProps {
   passiveBoosts?: ActivePassiveBoosts;
   onGameOver: (score: number, timeSurvived: number, obstaclesDodged: number, powerupsCollected: number) => void;
   onScoreUpdate: (score: number, combo: number) => void;
+  onTimeUpdate: (timeSurvived: number) => void;
   onActivePowerUpsChange: (active: ActivePowerUp[]) => void;
   onLivesChange: (lives: number) => void;
 }
@@ -49,6 +50,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
   passiveBoosts,
   onGameOver,
   onScoreUpdate,
+  onTimeUpdate,
   onActivePowerUpsChange,
   onLivesChange,
 }) => {
@@ -169,6 +171,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
 
     onLivesChange(gameStatsRef.current.lives);
     onScoreUpdate(0, 1);
+    onTimeUpdate(0);
     onActivePowerUpsChange([]);
 
     // Trigger starter loadout powerup if chosen
@@ -257,9 +260,26 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
     screenShakeIntensityRef.current = intensity;
   };
 
+  // Endless-mode obstacle unlock schedule: instead of looping the fixed
+  // Stage 3 obstacle set forever, widen the pool as the run goes on so a
+  // long endless run keeps introducing new hazards, not just faster old ones
+  const ENDLESS_OBSTACLE_UNLOCKS: { at: number; type: Obstacle['type'] }[] = [
+    { at: 0, type: 'comet' },
+    { at: 0, type: 'bumper' },
+    { at: 0, type: 'anvil' },
+    { at: 45, type: 'seeker' },
+    { at: 90, type: 'shockwave' },
+    { at: 150, type: 'laser_beam' },
+    { at: 150, type: 'piston' },
+  ];
+
   // Helper: Spawn Obstacle Wave
   const spawnObstacle = () => {
-    const allowed = level.allowedObstacles;
+    const stats = gameStatsRef.current;
+    const allowed =
+      gameMode === 'endless'
+        ? ENDLESS_OBSTACLE_UNLOCKS.filter((u) => stats.timeSurvived >= u.at).map((u) => u.type)
+        : level.allowedObstacles;
     if (allowed.length === 0) return;
 
     const type = allowed[Math.floor(Math.random() * allowed.length)];
@@ -543,9 +563,17 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
       if (stats.comboTimer <= 0) stats.combo = 1;
     }
     onScoreUpdate(Math.floor(stats.score), stats.combo);
+    onTimeUpdate(stats.timeSurvived);
 
     // 2. Spawn Obstacle Waves
-    const timeFactor = Math.min(stats.timeSurvived / 60, 2.0); // accelerates over time
+    // Campaign stages are short (under 75s) so a hard cap at the 60s mark is
+    // fine. Endless has no end, so instead of plateauing forever at 60s it
+    // keeps climbing on a decelerating curve - still escalating on a 10+
+    // minute run, without the spawn interval collapsing to near-zero.
+    const timeFactor =
+      gameMode === 'endless'
+        ? Math.min(Math.sqrt(stats.timeSurvived / 60) * 2, 10.0)
+        : Math.min(stats.timeSurvived / 60, 2.0);
     const adjustedInterval = level.spawnInterval / (1 + timeFactor * 0.6);
     if (now - stats.lastObstacleSpawn > adjustedInterval) {
       spawnObstacle();
@@ -734,7 +762,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
           // Transfer kinetic impulse (knockback force pushing ball away)
           const nx = dist > 0 ? dx / dist : 1;
           const ny = dist > 0 ? dy / dist : 0;
-          const knockbackForce = ball.isAnchored ? 100 : 220;
+          const knockbackForce = ball.isAnchored ? 140 : 320;
 
           ball.vx += nx * knockbackForce + obs.vx * 0.3;
           ball.vy += ny * knockbackForce + obs.vy * 0.3;
@@ -758,7 +786,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
           if (Math.abs(dist - obs.radius) < 20) {
             // Push ball outward
             const angle = Math.atan2(ball.y - obs.y, ball.x - obs.x);
-            const force = ball.isAnchored ? 100 : 220;
+            const force = ball.isAnchored ? 140 : 320;
             ball.vx += Math.cos(angle) * force;
             ball.vy += Math.sin(angle) * force;
             addFloatingText(ball.x, ball.y - 15, 'SHOCKWAVE!', '#f97316');
@@ -787,7 +815,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
           const distToLine = Math.abs(-sinA * ball.x + cosA * ball.y);
 
           if (distToLine < ball.radius + (obs.width || 12) / 2) {
-            const pushForce = ball.isAnchored ? 80 : 180;
+            const pushForce = ball.isAnchored ? 110 : 250;
             ball.vx += -sinA * pushForce;
             ball.vy += cosA * pushForce;
             addFloatingText(ball.x, ball.y - 15, 'LASER ZAP!', '#f43f5e');
@@ -811,7 +839,7 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
         if (dist < ball.radius + obs.radius) {
           const nx = dist > 0 ? dx / dist : 1;
           const ny = dist > 0 ? dy / dist : 0;
-          const knockbackForce = ball.isAnchored ? 100 : 200;
+          const knockbackForce = ball.isAnchored ? 140 : 280;
 
           ball.vx += nx * knockbackForce;
           ball.vy += ny * knockbackForce;
@@ -838,8 +866,8 @@ export const PhysicsCanvas: React.FC<PhysicsCanvasProps> = ({
             const dist = Math.hypot(ball.x - obs.x, ball.y - obs.y);
             if (dist < obs.radius + ball.radius + 30) {
               const angle = Math.atan2(ball.y - obs.y, ball.x - obs.x);
-              ball.vx += Math.cos(angle) * 240;
-              ball.vy += Math.sin(angle) * 240;
+              ball.vx += Math.cos(angle) * 320;
+              ball.vy += Math.sin(angle) * 320;
               addFloatingText(ball.x, ball.y - 15, 'ANVIL CRASH!', '#64748b');
               triggerScreenShake(0.4, 16);
               handleHit(obs);

@@ -18,6 +18,7 @@ type Key =
   | 'randomLocked'
   | 'randomHint'
   | 'unlockHint'
+  | 'surviveToClear'
   | 'endlessTitle'
   | 'endlessDesc'
   | 'highestScore'
@@ -49,6 +50,7 @@ const TRANSLATIONS: Record<Language, Record<Key, string>> = {
     randomLocked: 'Earn 3 stars on any stage to unlock Random loadout',
     randomHint: 'Randomly pick from unlocked starter power-ups',
     unlockHint: 'Earn 3 Stars on Stage {stage} to unlock {label}',
+    surviveToClear: 'Survive {seconds}s to clear',
     endlessTitle: 'Endless Hazard Run',
     endlessDesc: 'Platform gets faster, obstacles spawn continuously! How long can you stay on the platform?',
     highestScore: 'Highest Score',
@@ -79,6 +81,7 @@ const TRANSLATIONS: Record<Language, Record<Key, string>> = {
     randomLocked: '在任意关卡获得三星以解锁随机装备',
     randomHint: '从已解锁的初始道具中随机选择',
     unlockHint: '在第 {stage} 关获得三星以解锁 {label}',
+    surviveToClear: '撑过 {seconds} 秒即可过关',
     endlessTitle: '无尽挑战',
     endlessDesc: '平台速度不断加快，障碍物持续生成！看看你能撑多久！',
     highestScore: '最高分',
@@ -109,6 +112,7 @@ const TRANSLATIONS: Record<Language, Record<Key, string>> = {
     randomLocked: '在任意關卡獲得三星以解鎖隨機裝備',
     randomHint: '從已解鎖的初始道具中隨機選擇',
     unlockHint: '在第 {stage} 關獲得三星以解鎖 {label}',
+    surviveToClear: '撐過 {seconds} 秒即可過關',
     endlessTitle: '無盡挑戰',
     endlessDesc: '平台速度不斷加快，障礙物持續生成！看看你能撐多久！',
     highestScore: '最高分',

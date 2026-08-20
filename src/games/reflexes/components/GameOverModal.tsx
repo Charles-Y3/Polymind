@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { GameMode, LevelConfig } from '../types';
 import { Trophy, Star, RotateCcw, ArrowRight, Home, Share2, Check, RefreshCw, Globe, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { shareScoreCard, getRegisteredNameForCurrentIp } from '../services/leaderboardService';
+import { calculateStars } from '../utils/stars';
 
 interface GameOverModalProps {
   score: number;
@@ -52,12 +53,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   }, []);
 
   // Calculate Stars for Campaign Mode
-  let stars = 0;
-  if (gameMode === 'campaign') {
-    if (score >= level.starScores[0]) stars = 1;
-    if (score >= level.starScores[1]) stars = 2;
-    if (score >= level.starScores[2]) stars = 3;
-  }
+  const stars = calculateStars(score, timeSurvived, level, gameMode);
 
   useEffect(() => {
     // Confetti burst if high score or 2+ stars

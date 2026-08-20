@@ -257,6 +257,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                       {!isUnlocked && <Lock className="w-3.5 h-3.5 text-slate-500" />}
                     </div>
                     <p className="text-[11px] text-slate-400 line-clamp-1">{levelText.description}</p>
+                    {isUnlocked && (
+                      <p className="text-[11px] text-cyan-400 font-semibold flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3" />
+                        {t(lang, 'surviveToClear', { seconds: String(level.targetTime) })}
+                      </p>
+                    )}
 
                     {/* Star ratings */}
                     {isUnlocked && (

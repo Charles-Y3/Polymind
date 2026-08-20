@@ -124,8 +124,8 @@ export interface LevelConfig {
   platformWidth: number;
   platformHeight: number;
   hasWalls: boolean;
-  targetTime: number; // Seconds to survive for 3 stars
-  starScores: [number, number, number];
+  targetTime: number; // Seconds to survive to clear the stage (earns 1 star)
+  starScores: [number, number]; // score thresholds for [2 stars, 3 stars] once cleared
   allowedObstacles: ObstacleType[];
   spawnInterval: number; // Interval between obstacle waves in ms
   powerUpInterval: number;

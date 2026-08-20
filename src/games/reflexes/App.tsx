@@ -21,6 +21,7 @@ import {
 } from './utils/storage';
 import { submitGlobalScore, fetchGlobalLeaderboard, getRegisteredNameForCurrentIp } from './services/leaderboardService';
 import { soundManager } from './utils/sound';
+import { calculateStars } from './utils/stars';
 
 import { MainMenu } from './components/MainMenu';
 import { PhysicsCanvas } from './components/PhysicsCanvas';
@@ -86,6 +87,7 @@ export default function App() {
   const [gameRunId, setGameRunId] = useState(0);
   const [currentScore, setCurrentScore] = useState(0);
   const [combo, setCombo] = useState(1);
+  const [timeSurvived, setTimeSurvived] = useState(0);
   const [lives, setLives] = useState(3);
   const [activePowerUps, setActivePowerUps] = useState<ActivePowerUp[]>([]);
   const [runSummary, setRunSummary] = useState({
@@ -243,6 +245,7 @@ export default function App() {
     setActiveLevel(level);
     setCurrentScore(0);
     setCombo(1);
+    setTimeSurvived(0);
     setActivePowerUps([]);
     setTiltX(0);
     setTiltY(0);
@@ -269,21 +272,7 @@ export default function App() {
       setGameState('game_over');
 
       setStats((prevStats) => {
-        let starsEarned = 0;
-
-        if (activeMode === 'campaign') {
-          // If player reached targetTime OR reached score thresholds, award stars!
-          if (timeSurvived >= activeLevel.targetTime || score >= activeLevel.starScores[0]) {
-            starsEarned = 1;
-          }
-          if (score >= activeLevel.starScores[1]) starsEarned = 2;
-          if (score >= activeLevel.starScores[2]) starsEarned = 3;
-
-          // Surviving targetTime guarantees at least 2 stars
-          if (timeSurvived >= activeLevel.targetTime && starsEarned < 2) {
-            starsEarned = 2;
-          }
-        }
+        const starsEarned = calculateStars(score, timeSurvived, activeLevel, activeMode);
 
         const currentBest = Number(
           prevStats.starsEarned?.[activeLevel.id] || (prevStats.starsEarned as any)?.[String(activeLevel.id)] || 0
@@ -422,6 +411,7 @@ export default function App() {
                 setCurrentScore(s);
                 setCombo(c);
               }}
+              onTimeUpdate={setTimeSurvived}
               onActivePowerUpsChange={setActivePowerUps}
               onLivesChange={setLives}
             />
@@ -435,6 +425,9 @@ export default function App() {
               tiltY={tiltY}
               activePowerUps={activePowerUps}
               stageTitle={activeMode === 'campaign' ? activeLevel.title : 'Endless Run'}
+              secondsToClear={
+                activeMode === 'campaign' ? Math.max(0, Math.ceil(activeLevel.targetTime - timeSurvived)) : undefined
+              }
               onPause={() => setGameState('paused')}
               onCalibrate={calibrateZero}
             />
